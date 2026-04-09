@@ -551,6 +551,10 @@ class SubtitleConfig:
     subtitle_style: Optional[str] = None
     need_remove_punctuation: bool = False
     custom_prompt_text: Optional[str] = None
+    subtitle_effect: str = "none"
+    subtitle_effect_duration: int = 300
+    subtitle_effect_intensity: float = 1.0
+    subtitle_rainbow_end_color: str = "#0000FF"
 
 
 @dataclass

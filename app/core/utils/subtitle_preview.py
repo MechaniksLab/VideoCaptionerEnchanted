@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 from app.config import CACHE_PATH, RESOURCE_PATH
+from app.core.subtitle_processor.effect_manager import EffectManager
 
 from .logger import setup_logger
 from .ass_auto_wrap import auto_wrap_ass_file
@@ -49,13 +50,40 @@ def generate_ass_file(
     preview_text: Tuple[str, Optional[str]],
     video_width: int = 1280,
     video_height: int = 720,
+    effect_type: str = "none",
+    effect_duration_ms: int = 300,
+    effect_intensity: float = 1.0,
+    rainbow_end_color: str = "#0000FF",
 ) -> str:
     """生成临时 ASS 文件"""
     original_text, translate_text = preview_text
 
+    preview_start_ms = 0
+    preview_end_ms = 1000
+    original_text = EffectManager.apply_ass_effect(
+        original_text,
+        effect_type,
+        preview_start_ms,
+        preview_end_ms,
+        effect_duration_ms,
+        effect_intensity,
+        rainbow_end_color,
+        0,
+    )
+    translated_text = EffectManager.apply_ass_effect(
+        translate_text,
+        effect_type,
+        preview_start_ms,
+        preview_end_ms,
+        effect_duration_ms,
+        effect_intensity,
+        rainbow_end_color,
+        1,
+    )
+
     dialogue = (
         [
-            f"Dialogue: 0,0:00:00.00,0:00:01.00,Secondary,,0,0,0,,{translate_text}",
+            f"Dialogue: 0,0:00:00.00,0:00:01.00,Secondary,,0,0,0,,{translated_text}",
             f"Dialogue: 0,0:00:00.00,0:00:01.00,Default,,0,0,0,,{original_text}",
         ]
         if translate_text
@@ -100,10 +128,23 @@ def generate_preview(
     bg_path: str,
     width: int,
     height: int,
+    effect_type: str = "none",
+    effect_duration_ms: int = 300,
+    effect_intensity: float = 1.0,
+    rainbow_end_color: str = "#0000FF",
 ) -> str:
     """生成预览图片"""
 
-    ass_file = generate_ass_file(style_str, preview_text, width, height)
+    ass_file = generate_ass_file(
+        style_str,
+        preview_text,
+        width,
+        height,
+        effect_type,
+        effect_duration_ms,
+        effect_intensity,
+        rainbow_end_color,
+    )
     ass_file = auto_wrap_ass_file(ass_file)
     bg_path = ensure_background(Path(bg_path))
 

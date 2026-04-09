@@ -543,7 +543,15 @@ class SubtitleInterface(QWidget):
 
             if file_path.endswith(".ass"):
                 style_str = get_subtitle_style(cfg.subtitle_style_name.value)
-                asr_data.to_ass(style_str, layout, file_path)
+                asr_data.to_ass(
+                    style_str,
+                    layout,
+                    file_path,
+                    effect_type=cfg.subtitle_effect.value,
+                    effect_duration_ms=cfg.subtitle_effect_duration.value,
+                    effect_intensity=cfg.subtitle_effect_intensity.value / 100,
+                    rainbow_end_color=cfg.subtitle_rainbow_end_color.value,
+                )
             else:
                 asr_data.save(file_path, layout=layout)
             InfoBar.success(
@@ -654,6 +662,10 @@ class SubtitleInterface(QWidget):
                 temp_srt_path,
                 layout=cfg.subtitle_layout.value,
                 ass_style=subtitle_style_srt,
+                effect_type=cfg.subtitle_effect.value,
+                effect_duration_ms=cfg.subtitle_effect_duration.value,
+                effect_intensity=cfg.subtitle_effect_intensity.value / 100,
+                rainbow_end_color=cfg.subtitle_rainbow_end_color.value,
             )
             signalBus.add_subtitle(temp_srt_path)
 

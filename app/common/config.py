@@ -246,6 +246,16 @@ class Config(QConfig):
     subtitle_style_name = ConfigItem("SubtitleStyle", "StyleName", "default")
     subtitle_layout = ConfigItem("SubtitleStyle", "Layout", "译文在上")
     subtitle_preview_image = ConfigItem("SubtitleStyle", "PreviewImage", "")
+    subtitle_effect = ConfigItem("SubtitleStyle", "Effect", "none")
+    subtitle_effect_duration = RangeConfigItem(
+        "SubtitleStyle", "EffectDuration", 300, RangeValidator(50, 5000)
+    )
+    subtitle_effect_intensity = RangeConfigItem(
+        "SubtitleStyle", "EffectIntensity", 100, RangeValidator(10, 300)
+    )
+    subtitle_rainbow_end_color = ConfigItem(
+        "SubtitleStyle", "RainbowEndColor", "#0000FF"
+    )
 
     # ------------------- 保存配置 -------------------
     work_dir = ConfigItem("Save", "Work_Dir", WORK_PATH, FolderValidator())

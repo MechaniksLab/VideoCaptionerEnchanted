@@ -197,7 +197,14 @@ class ASRData:
         return self
 
     def save(
-        self, save_path: str, ass_style: str = None, layout: str = "原文在上"
+        self,
+        save_path: str,
+        ass_style: str = None,
+        layout: str = "原文在上",
+        effect_type: str = "none",
+        effect_duration_ms: int = 300,
+        effect_intensity: float = 1.0,
+        rainbow_end_color: str = "#0000FF",
     ) -> None:
         """
         Save the ASRData to a file
@@ -221,7 +228,15 @@ class ASRData:
             with open(save_path, "w", encoding="utf-8") as f:
                 json.dump(self.to_json(), f, ensure_ascii=False)
         elif save_path.endswith(".ass"):
-            self.to_ass(save_path=save_path, style_str=ass_style, layout=layout)
+            self.to_ass(
+                save_path=save_path,
+                style_str=ass_style,
+                layout=layout,
+                effect_type=effect_type,
+                effect_duration_ms=effect_duration_ms,
+                effect_intensity=effect_intensity,
+                rainbow_end_color=rainbow_end_color,
+            )
         else:
             raise ValueError(f"Unsupported file extension: {save_path}")
 
@@ -305,7 +320,14 @@ class ASRData:
         return result_json
 
     def to_ass(
-        self, style_str: str = None, layout: str = "原文在上", save_path: str = None
+        self,
+        style_str: str = None,
+        layout: str = "原文在上",
+        save_path: str = None,
+        effect_type: str = "none",
+        effect_duration_ms: int = 300,
+        effect_intensity: float = 1.0,
+        rainbow_end_color: str = "#0000FF",
     ) -> str:
         """转换为ASS字幕格式
 
@@ -340,11 +362,33 @@ class ASRData:
             "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
         )
 
+        from app.core.subtitle_processor.effect_manager import EffectManager
+
         dialogue_template = "Dialogue: 0,{},{},{},,0,0,0,,{}\n"
-        for seg in self.segments:
+        for idx, seg in enumerate(self.segments):
             start_time, end_time = seg.to_ass_ts()
             original = seg.text
             translated = seg.translated_text
+            original_effect_text = EffectManager.apply_ass_effect(
+                original,
+                effect_type,
+                seg.start_time,
+                seg.end_time,
+                effect_duration_ms,
+                effect_intensity,
+                rainbow_end_color,
+                idx,
+            )
+            translated_effect_text = EffectManager.apply_ass_effect(
+                translated,
+                effect_type,
+                seg.start_time,
+                seg.end_time,
+                effect_duration_ms,
+                effect_intensity,
+                rainbow_end_color,
+                idx,
+            )
 
             # 检查是否有译文
             has_translation = bool(translated and translated.strip())
@@ -352,33 +396,33 @@ class ASRData:
             if layout == "译文在上":
                 if has_translation:
                     ass_content += dialogue_template.format(
-                        start_time, end_time, "Secondary", original
+                        start_time, end_time, "Secondary", original_effect_text
                     )
                     ass_content += dialogue_template.format(
-                        start_time, end_time, "Default", translated
+                        start_time, end_time, "Default", translated_effect_text
                     )
                 else:
                     ass_content += dialogue_template.format(
-                        start_time, end_time, "Default", original
+                        start_time, end_time, "Default", original_effect_text
                     )
             elif layout == "原文在上":
                 if has_translation:
                     ass_content += dialogue_template.format(
-                        start_time, end_time, "Secondary", translated
+                        start_time, end_time, "Secondary", translated_effect_text
                     )
                     ass_content += dialogue_template.format(
-                        start_time, end_time, "Default", original
+                        start_time, end_time, "Default", original_effect_text
                     )
                 else:
                     ass_content += dialogue_template.format(
-                        start_time, end_time, "Default", original
+                        start_time, end_time, "Default", original_effect_text
                     )
             elif layout == "仅原文":
                 ass_content += dialogue_template.format(
-                    start_time, end_time, "Default", original
+                    start_time, end_time, "Default", original_effect_text
                 )
             elif layout == "仅译文":
-                text = translated if has_translation else original
+                text = translated_effect_text if has_translation else original_effect_text
                 ass_content += dialogue_template.format(
                     start_time, end_time, "Default", text
                 )

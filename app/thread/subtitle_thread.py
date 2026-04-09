@@ -203,6 +203,10 @@ class SubtitleThread(QThread):
                             save_path=save_path,
                             ass_style=subtitle_config.subtitle_style,
                             layout=subtitle_layout,
+                            effect_type=subtitle_config.subtitle_effect,
+                            effect_duration_ms=subtitle_config.subtitle_effect_duration,
+                            effect_intensity=subtitle_config.subtitle_effect_intensity,
+                            rainbow_end_color=subtitle_config.subtitle_rainbow_end_color,
                         )
                         logger.info(f"字幕保存到 {save_path}")
 
@@ -211,6 +215,10 @@ class SubtitleThread(QThread):
                 save_path=self.task.output_path,
                 ass_style=subtitle_config.subtitle_style,
                 layout=subtitle_config.subtitle_layout,
+                effect_type=subtitle_config.subtitle_effect,
+                effect_duration_ms=subtitle_config.subtitle_effect_duration,
+                effect_intensity=subtitle_config.subtitle_effect_intensity,
+                rainbow_end_color=subtitle_config.subtitle_rainbow_end_color,
             )
             logger.info(f"字幕保存到 {self.task.output_path}")
 

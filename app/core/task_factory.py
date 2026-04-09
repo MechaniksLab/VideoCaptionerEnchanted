@@ -192,6 +192,10 @@ class TaskFactory:
             need_remove_punctuation=cfg.needs_remove_punctuation.value,
             # 字幕提示
             custom_prompt_text=cfg.custom_prompt_text.value,
+            subtitle_effect=cfg.subtitle_effect.value,
+            subtitle_effect_duration=cfg.subtitle_effect_duration.value,
+            subtitle_effect_intensity=cfg.subtitle_effect_intensity.value / 100,
+            subtitle_rainbow_end_color=cfg.subtitle_rainbow_end_color.value,
         )
 
         return SubtitleTask(

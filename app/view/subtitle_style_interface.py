@@ -29,6 +29,7 @@ from app.components.MySettingCard import (
     SpinBoxSettingCard,
 )
 from app.config import SUBTITLE_STYLE_PATH, ASSETS_PATH
+from app.core.subtitle_processor.effect_manager import EffectManager
 from app.core.utils.subtitle_preview import generate_preview
 
 PERVIEW_TEXTS = {
@@ -65,6 +66,10 @@ class PreviewThread(QThread):
         bg_path: str,
         width: int,
         height: int,
+        effect_type: str,
+        effect_duration_ms: int,
+        effect_intensity: float,
+        rainbow_end_color: str,
     ):
         """
         Args:
@@ -77,6 +82,10 @@ class PreviewThread(QThread):
         self.bg_path = bg_path
         self.width = width
         self.height = height
+        self.effect_type = effect_type
+        self.effect_duration_ms = effect_duration_ms
+        self.effect_intensity = effect_intensity
+        self.rainbow_end_color = rainbow_end_color
 
     def run(self):
         preview_path = generate_preview(
@@ -85,6 +94,10 @@ class PreviewThread(QThread):
             bg_path=self.bg_path,
             width=self.width,
             height=self.height,
+            effect_type=self.effect_type,
+            effect_duration_ms=self.effect_duration_ms,
+            effect_intensity=self.effect_intensity,
+            rainbow_end_color=self.rainbow_end_color,
         )
         self.previewReady.emit(preview_path)
 
@@ -178,12 +191,44 @@ class SubtitleStyleInterface(QWidget):
 
     def _initSettingCards(self):
         """初始化所有设置卡片"""
+        self.effect_options = EffectManager.get_effect_options()
+
         # 字幕排布设置
         self.layoutCard = ComboBoxSettingCard(
             FIF.ALIGNMENT,
             self.tr("字幕排布"),
             self.tr("设置主字幕和副字幕的显示方式"),
             texts=["译文在上", "原文在上", "仅译文", "仅原文"],
+        )
+
+        self.effectCard = ComboBoxSettingCard(
+            FIF.BRUSH,
+            "Эффект субтитров",
+            "Выберите анимацию появления субтитров",
+            texts=list(self.effect_options.keys()),
+        )
+
+        self.effectDurationCard = SpinBoxSettingCard(
+            FIF.STOP_WATCH,
+            "Длительность эффекта (мс)",
+            "Сколько длится анимация появления",
+            minimum=50,
+            maximum=5000,
+        )
+
+        self.effectIntensityCard = SpinBoxSettingCard(
+            FIF.ZOOM,
+            "Интенсивность эффекта (%)",
+            "Сила выраженности анимации",
+            minimum=10,
+            maximum=300,
+        )
+
+        self.rainbowEndColorCard = ColorSettingCard(
+            QColor(0, 0, 255),
+            FIF.PALETTE,
+            "Конечный цвет радуги",
+            "Цвет, в который переходит текст при эффекте Радуга",
         )
 
         # 垂直间距
@@ -320,6 +365,10 @@ class SubtitleStyleInterface(QWidget):
         """初始化布局"""
         # 添加卡片到组
         self.layoutGroup.addSettingCard(self.layoutCard)
+        self.layoutGroup.addSettingCard(self.effectCard)
+        self.layoutGroup.addSettingCard(self.effectDurationCard)
+        self.layoutGroup.addSettingCard(self.effectIntensityCard)
+        self.layoutGroup.addSettingCard(self.rainbowEndColorCard)
         self.layoutGroup.addSettingCard(self.verticalSpacingCard)
         self.mainGroup.addSettingCard(self.mainFontCard)
         self.mainGroup.addSettingCard(self.mainSizeCard)
@@ -369,6 +418,21 @@ class SubtitleStyleInterface(QWidget):
         """设置初始值"""
         # 设置字幕排布
         self.layoutCard.comboBox.setCurrentText(cfg.get(cfg.subtitle_layout))
+        # 设置字幕效果
+        current_effect = cfg.get(cfg.subtitle_effect)
+        current_effect_label = next(
+            (
+                label
+                for label, value in self.effect_options.items()
+                if value == current_effect
+            ),
+            "Без эффекта",
+        )
+        self.effectCard.comboBox.setCurrentText(current_effect_label)
+        self.effectDurationCard.spinBox.setValue(cfg.get(cfg.subtitle_effect_duration))
+        self.effectIntensityCard.spinBox.setValue(cfg.get(cfg.subtitle_effect_intensity))
+        rainbow_hex = cfg.get(cfg.subtitle_rainbow_end_color) or "#0000FF"
+        self.rainbowEndColorCard.setColor(QColor(rainbow_hex))
         # 设置字幕样式
         self.styleNameComboBox.comboBox.setCurrentText(cfg.get(cfg.subtitle_style_name))
 
@@ -406,6 +470,25 @@ class SubtitleStyleInterface(QWidget):
         self.layoutCard.currentTextChanged.connect(self.onSettingChanged)
         self.layoutCard.currentTextChanged.connect(
             lambda: cfg.set(cfg.subtitle_layout, self.layoutCard.comboBox.currentText())
+        )
+        self.effectCard.currentTextChanged.connect(self.onSettingChanged)
+        self.effectCard.currentTextChanged.connect(
+            lambda text: cfg.set(
+                cfg.subtitle_effect,
+                self.effect_options.get(text, "none"),
+            )
+        )
+        self.effectDurationCard.spinBox.valueChanged.connect(self.onSettingChanged)
+        self.effectDurationCard.spinBox.valueChanged.connect(
+            lambda value: cfg.set(cfg.subtitle_effect_duration, int(value))
+        )
+        self.effectIntensityCard.spinBox.valueChanged.connect(self.onSettingChanged)
+        self.effectIntensityCard.spinBox.valueChanged.connect(
+            lambda value: cfg.set(cfg.subtitle_effect_intensity, int(value))
+        )
+        self.rainbowEndColorCard.colorChanged.connect(self.onSettingChanged)
+        self.rainbowEndColorCard.colorChanged.connect(
+            lambda color: cfg.set(cfg.subtitle_rainbow_end_color, color.name())
         )
         # 垂直间距
         self.verticalSpacingCard.spinBox.valueChanged.connect(self.onSettingChanged)
@@ -578,6 +661,10 @@ class SubtitleStyleInterface(QWidget):
             bg_path=path,
             width=width,
             height=height,
+            effect_type=cfg.get(cfg.subtitle_effect),
+            effect_duration_ms=cfg.get(cfg.subtitle_effect_duration),
+            effect_intensity=cfg.get(cfg.subtitle_effect_intensity) / 100,
+            rainbow_end_color=cfg.get(cfg.subtitle_rainbow_end_color),
         )
         self.preview_thread.previewReady.connect(self.onPreviewReady)
         self.preview_thread.start()
