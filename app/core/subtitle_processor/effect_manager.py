@@ -471,10 +471,10 @@ class EffectManager:
 
         duration = max(end_ms - start_ms, 1)
 
-        effect_duration_ms = max(50, min(effect_duration_ms, duration))
-        intensity = max(0.1, min(effect_intensity, 3.0))
-        amp = max(0.2, min(motion_amplitude, 3.0))
-        jitter = max(0.0, min(motion_jitter, 1.0))
+        effect_duration_ms = max(20, min(effect_duration_ms, duration))
+        intensity = max(0.01, min(effect_intensity, 5.0))
+        amp = max(0.01, min(motion_amplitude, 5.0))
+        jitter = max(0.0, min(motion_jitter, 2.0))
         if anti_flicker:
             intensity *= 0.9
             jitter *= 0.45

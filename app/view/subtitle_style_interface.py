@@ -419,16 +419,16 @@ class SubtitleStyleInterface(QWidget):
             FIF.STOP_WATCH,
             "Длительность эффекта (мс)",
             "Сколько длится анимация появления",
-            minimum=50,
-            maximum=5000,
+            minimum=20,
+            maximum=10000,
         )
 
         self.effectIntensityCard = SpinBoxSettingCard(
             FIF.ZOOM,
             "Интенсивность эффекта (%)",
             "Сила выраженности анимации",
-            minimum=10,
-            maximum=300,
+            minimum=1,
+            maximum=500,
         )
 
         self.rainbowEndColorCard = ColorSettingCard(
@@ -456,8 +456,8 @@ class SubtitleStyleInterface(QWidget):
             FIF.ZOOM,
             "Амплитуда движения (%)",
             "Работает для motion-эффектов (см. выше)",
-            minimum=20,
-            maximum=300,
+            minimum=1,
+            maximum=500,
         )
 
         self.motionEasingCard = ComboBoxSettingCard(
@@ -472,7 +472,7 @@ class SubtitleStyleInterface(QWidget):
             "Дрожание (jitter, %) ",
             "Микро-смещение позиции (только motion-эффекты)",
             minimum=0,
-            maximum=100,
+            maximum=200,
         )
 
         self.karaokeModeCard = ComboBoxSettingCard(
@@ -486,8 +486,8 @@ class SubtitleStyleInterface(QWidget):
             FIF.STOP_WATCH,
             "Окно караоке (мс)",
             "Длительность подсветки слов",
-            minimum=200,
-            maximum=4000,
+            minimum=50,
+            maximum=8000,
         )
 
         # Единая точка настроек сегментации/пунктуации (перенесено из окна шестерёнки)

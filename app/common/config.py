@@ -248,10 +248,10 @@ class Config(QConfig):
     subtitle_preview_image = ConfigItem("SubtitleStyle", "PreviewImage", "")
     subtitle_effect = ConfigItem("SubtitleStyle", "Effect", "none")
     subtitle_effect_duration = RangeConfigItem(
-        "SubtitleStyle", "EffectDuration", 300, RangeValidator(50, 5000)
+        "SubtitleStyle", "EffectDuration", 300, RangeValidator(20, 10000)
     )
     subtitle_effect_intensity = RangeConfigItem(
-        "SubtitleStyle", "EffectIntensity", 100, RangeValidator(10, 300)
+        "SubtitleStyle", "EffectIntensity", 100, RangeValidator(1, 500)
     )
     subtitle_rainbow_end_color = ConfigItem(
         "SubtitleStyle", "RainbowEndColor", "#0000FF"
@@ -277,7 +277,7 @@ class Config(QConfig):
         OptionsValidator(["up", "down", "left", "right"]),
     )
     subtitle_motion_amplitude = RangeConfigItem(
-        "SubtitleStyle", "MotionAmplitude", 100, RangeValidator(20, 300)
+        "SubtitleStyle", "MotionAmplitude", 100, RangeValidator(1, 500)
     )
     subtitle_motion_easing = OptionsConfigItem(
         "SubtitleStyle",
@@ -286,13 +286,13 @@ class Config(QConfig):
         OptionsValidator(["ease_out", "ease_in", "ease_in_out", "linear"]),
     )
     subtitle_motion_jitter = RangeConfigItem(
-        "SubtitleStyle", "MotionJitter", 0, RangeValidator(0, 100)
+        "SubtitleStyle", "MotionJitter", 0, RangeValidator(0, 200)
     )
     subtitle_karaoke_mode = ConfigItem(
         "SubtitleStyle", "KaraokeMode", False, BoolValidator()
     )
     subtitle_karaoke_window_ms = RangeConfigItem(
-        "SubtitleStyle", "KaraokeWindowMs", 1200, RangeValidator(200, 4000)
+        "SubtitleStyle", "KaraokeWindowMs", 1200, RangeValidator(50, 8000)
     )
     subtitle_auto_contrast = ConfigItem(
         "SubtitleStyle", "AutoContrast", False, BoolValidator()
