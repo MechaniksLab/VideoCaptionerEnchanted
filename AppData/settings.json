@@ -38,7 +38,7 @@
     },
     "Subtitle": {
         "CustomPromptText": "",
-        "MaxWordCountCJK": 23,
+        "MaxWordCountCJK": 22,
         "MaxWordCountEnglish": 18,
         "NeedOptimize": false,
         "NeedSplit": false,

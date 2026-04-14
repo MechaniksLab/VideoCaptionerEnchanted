@@ -3,7 +3,14 @@ from typing import List, Union
 
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QIcon, QPainter
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLabel, QToolButton, QVBoxLayout
+from PyQt5.QtWidgets import (
+    QAbstractSpinBox,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QToolButton,
+    QVBoxLayout,
+)
 from qfluentwidgets import ColorDialog, ComboBox, CompactDoubleSpinBox, CompactSpinBox
 from qfluentwidgets.common.config import isDarkTheme
 from qfluentwidgets.common.icon import FluentIcon as FIF
@@ -131,8 +138,10 @@ class DoubleSpinBoxSettingCard(SettingCard):
         self.spinBox = CompactDoubleSpinBox(self)
         self.spinBox.setRange(minimum, maximum)
         self.spinBox.setDecimals(decimals)
-        self.spinBox.setMinimumWidth(60)
+        self.spinBox.setMinimumWidth(90)
         self.spinBox.setSingleStep(0.2)  # 设置步长为0.1
+        self.spinBox.setAccelerated(True)
+        self.spinBox.setStepType(QAbstractSpinBox.AdaptiveDecimalStepType)
 
         # 添加到布局
         self.hBoxLayout.addWidget(self.spinBox, 0, Qt.AlignRight)
@@ -170,8 +179,10 @@ class SpinBoxSettingCard(SettingCard):
         # 创建SpinBox
         self.spinBox = CompactSpinBox(self)
         self.spinBox.setRange(minimum, maximum)
-        self.spinBox.setMinimumWidth(60)
+        self.spinBox.setMinimumWidth(90)
         self.spinBox.setSingleStep(2)  # 设置步长为2
+        self.spinBox.setAccelerated(True)
+        self.spinBox.setStepType(QAbstractSpinBox.AdaptiveDecimalStepType)
 
         # 添加到布局
         self.hBoxLayout.addWidget(self.spinBox, 0, Qt.AlignRight)

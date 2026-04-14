@@ -2,6 +2,7 @@ from typing import Union
 
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QAbstractSpinBox
 from qfluentwidgets import CompactDoubleSpinBox, CompactSpinBox, SettingCard
 from qfluentwidgets.common.config import ConfigItem, qconfig
 
@@ -31,8 +32,10 @@ class DoubleSpinBoxSettingCard(SettingCard):
         self.spinBox = CompactDoubleSpinBox(self)
         self.spinBox.setRange(minimum, maximum)
         self.spinBox.setDecimals(decimals)
-        self.spinBox.setMinimumWidth(60)
+        self.spinBox.setMinimumWidth(90)
         self.spinBox.setSingleStep(step)  # 设置步长为0.2
+        self.spinBox.setAccelerated(True)
+        self.spinBox.setStepType(QAbstractSpinBox.AdaptiveDecimalStepType)
 
         # 添加到布局
         self.hBoxLayout.addWidget(self.spinBox, 0, Qt.AlignRight)
@@ -76,7 +79,9 @@ class SpinBoxSettingCard(SettingCard):
         # 创建SpinBox
         self.spinBox = CompactSpinBox(self)
         self.spinBox.setRange(minimum, maximum)
-        self.spinBox.setMinimumWidth(60)
+        self.spinBox.setMinimumWidth(90)
+        self.spinBox.setAccelerated(True)
+        self.spinBox.setStepType(QAbstractSpinBox.AdaptiveDecimalStepType)
 
         # 添加到布局
         self.hBoxLayout.addWidget(self.spinBox, 0, Qt.AlignRight)
