@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 from typing import Dict, Literal, Optional
 
+from app.config import APP_NAME
 from ..utils.logger import setup_logger
 from ..utils.ass_auto_wrap import auto_wrap_ass_file
 
@@ -125,7 +126,7 @@ def add_subtitles(
 
     # 移动到临时文件  Fix: 路径错误
     suffix = Path(subtitle_file).suffix.lower()
-    temp_dir = Path(tempfile.gettempdir()) / "VideoCaptioner"
+    temp_dir = Path(tempfile.gettempdir()) / APP_NAME
     temp_dir.mkdir(exist_ok=True)
     temp_subtitle = temp_dir / f"temp_subtitle.{suffix}"
     shutil.copy2(subtitle_file, temp_subtitle)

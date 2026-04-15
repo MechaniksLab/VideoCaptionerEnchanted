@@ -26,7 +26,7 @@ from qfluentwidgets import (
 )
 
 from app.common.config import cfg
-from app.config import APPDATA_PATH, ASSETS_PATH, VERSION
+from app.config import APP_NAME, APPDATA_PATH, ASSETS_PATH, VERSION
 from app.core.entities import (
     LLMServiceEnum,
     SupportedAudioFormats,
@@ -184,7 +184,7 @@ class TaskCreationInterface(QWidget):
 
         # 添加版权信息标签
         self.info_label = BodyLabel(
-            self.tr(f"©VideoCaptioner {VERSION} • By Weifeng"), self
+            self.tr(f"©{APP_NAME} {VERSION} • By MechaniksLab"), self
         )
         self.info_label.setAlignment(Qt.AlignCenter)
         self.info_label.setStyleSheet("font-size: 12px; color: #888888;")

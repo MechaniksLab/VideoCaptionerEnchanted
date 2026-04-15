@@ -708,6 +708,10 @@ def render_shorts(
     out_w_i, out_h_i = int(out_w), int(out_h)
     render_options = render_options or {}
 
+    def _even_size(v: int) -> int:
+        v = max(2, int(v))
+        return v if v % 2 == 0 else v - 1
+
     def _safe_filename(name: str, max_len: int = 72) -> str:
         raw = (name or "").strip()
         if not raw:
@@ -787,6 +791,11 @@ def render_shorts(
                 target_w_i, target_h_i = rw_i, rh_i
         except Exception:
             target_w_i, target_h_i = out_w_i, out_h_i
+
+    # Для yuv420p/большинства кодеков размеры должны быть чётными,
+    # иначе возможны ошибки рендера и файлы 0 байт.
+    target_w_i = _even_size(target_w_i)
+    target_h_i = _even_size(target_h_i)
 
     sx = target_w_i / max(1, out_w_i)
     sy = target_h_i / max(1, out_h_i)
@@ -987,21 +996,9 @@ def render_shorts(
                 pass
     _append_render_debug(f"ENCODER selected={selected_encoder_label}")
 
+    # Рендерим выбранные пользователем кандидаты как есть, без скрытой дедупликации,
+    # чтобы количество шортсов соответствовало количеству выбранных позиций.
     render_candidates = list(candidates)
-
-    def _overlap_ratio(a: ShortCandidate, b: ShortCandidate) -> float:
-        inter = max(0, min(a.end_ms, b.end_ms) - max(a.start_ms, b.start_ms))
-        short = max(1, min(a.duration_ms, b.duration_ms))
-        return inter / short
-
-    # Дополнительная защита от похожих шортсов в одном рендере.
-    # Если пользователь выбрал много близких моментов, оставляем более сильные.
-    deduped_for_render: List[ShortCandidate] = []
-    for cand in sorted(render_candidates, key=lambda x: x.score, reverse=True):
-        if any(_overlap_ratio(cand, kept) > 0.65 for kept in deduped_for_render):
-            continue
-        deduped_for_render.append(cand)
-    render_candidates = deduped_for_render
     if len(render_candidates) > MAX_RENDER_CLIPS:
         _append_render_debug(
             f"CANDIDATES_TRIM render={MAX_RENDER_CLIPS} from={len(render_candidates)}"

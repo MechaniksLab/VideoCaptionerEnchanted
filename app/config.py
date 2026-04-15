@@ -2,15 +2,15 @@ import logging
 import os
 from pathlib import Path
 
-VERSION = "v1.3.3"
+VERSION = "v1.4.0"
 YEAR = 2025
-APP_NAME = "VideoCaptioner"
-AUTHOR = "Weifeng"
+APP_NAME = "MechaniksLab Creator Studio"
+AUTHOR = "MechaniksLab"
 
-HELP_URL = "https://github.com/WEIFENG2333/VideoCaptioner"
-GITHUB_REPO_URL = "https://github.com/WEIFENG2333/VideoCaptioner"
-RELEASE_URL = "https://github.com/WEIFENG2333/VideoCaptioner/releases/latest"
-FEEDBACK_URL = "https://github.com/WEIFENG2333/VideoCaptioner/issues"
+HELP_URL = "https://github.com/MechaniksLab/VideoCaptionerEnchanted"
+GITHUB_REPO_URL = "https://github.com/MechaniksLab/VideoCaptionerEnchanted"
+RELEASE_URL = "https://github.com/MechaniksLab/VideoCaptionerEnchanted/releases/latest"
+FEEDBACK_URL = "https://github.com/MechaniksLab/VideoCaptionerEnchanted/issues"
 
 # 路径
 ROOT_PATH = Path(__file__).parent

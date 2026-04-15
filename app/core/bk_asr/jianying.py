@@ -9,7 +9,7 @@ from typing import Dict, Tuple, Union
 
 import requests
 
-from app.config import VERSION
+from app.config import APP_NAME, VERSION
 
 from ..utils.logger import setup_logger
 from .asr_data import ASRDataSeg
@@ -141,7 +141,7 @@ class JianYingASR(BaseASR):
             'tdid': self.tdid
         }
         headers = {
-            'User-Agent': f"VideoCaptioner/{VERSION}",
+            'User-Agent': f"{APP_NAME}/{VERSION}",
             'tdid': self.tdid,
             't': current_time
         }
