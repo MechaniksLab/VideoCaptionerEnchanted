@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 import tempfile
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
 
@@ -684,7 +685,8 @@ class AutoShortsInterface(QWidget):
         self.progress_bar.setValue(0)
         self.progress_label.setText("Рендер шортсов...")
 
-        output_dir = str(WORK_PATH / "shorts" / f"shorts_{Path(self.video_path).stem}")
+        stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_dir = str(WORK_PATH / "shorts" / f"shorts_{Path(self.video_path).stem}_{stamp}")
         self.last_output_dir = output_dir
         self.output_hint_label.setText(f"Папка результата: {output_dir}")
         self.render_thread = AutoShortsRenderThread(

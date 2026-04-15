@@ -1090,11 +1090,13 @@ def render_shorts(
             else:
                 concat_v_inputs = "".join([f"[vp{k}]" for k in range(len(trim_parts))])
                 if input_has_audio and audio_parts:
-                    concat_a_inputs = "".join([f"[ap{k}]" for k in range(len(audio_parts))])
+                    # Для concat с v=1:a=1 порядок входов должен быть interleaved:
+                    # [v0][a0][v1][a1]..., иначе ffmpeg получает media type mismatch.
+                    concat_va_inputs = "".join([f"[vp{k}][ap{k}]" for k in range(len(trim_parts))])
                     pre_cut = (
                         ";".join(trim_parts + audio_parts)
                         + ";"
-                        + f"{concat_v_inputs}{concat_a_inputs}concat=n={len(trim_parts)}:v=1:a=1[vsrc][asrc];"
+                        + f"{concat_va_inputs}concat=n={len(trim_parts)}:v=1:a=1[vsrc][asrc];"
                     )
                     src_ref = "vsrc"
                     audio_map_label = "[asrc]"
