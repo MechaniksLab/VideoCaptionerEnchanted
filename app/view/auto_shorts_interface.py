@@ -384,6 +384,11 @@ class AutoShortsInterface(QWidget):
         self._fx_preview_timer.setInterval(24)
         self._fx_preview_timer.timeout.connect(self._render_fx_preview_now)
 
+        self._template_autosave_timer = QTimer(self)
+        self._template_autosave_timer.setSingleShot(True)
+        self._template_autosave_timer.setInterval(350)
+        self._template_autosave_timer.timeout.connect(self._autosave_layout_template_silent)
+
         self._init_ui()
         self._apply_theme_style()
 
@@ -534,12 +539,13 @@ class AutoShortsInterface(QWidget):
         fx_hint.setWordWrap(True)
         template_layout.addWidget(fx_hint)
 
-        self.source_preview.changed.connect(lambda _: self._refresh_output_composite_preview())
-        self.output_preview.changed.connect(lambda _: self._refresh_output_composite_preview())
+        self.source_preview.changed.connect(lambda _: self._on_layout_changed())
+        self.output_preview.changed.connect(lambda _: self._on_layout_changed())
 
         row_tpl_actions = QHBoxLayout()
         self.dual_layer_enabled = CheckBox("Включить двухслойный шаблон")
         self.dual_layer_enabled.setChecked(True)
+        self.dual_layer_enabled.stateChanged.connect(lambda _: self._schedule_template_autosave())
         self.reset_template_btn = PushButton("Сбросить шаблон")
         self.reset_template_btn.clicked.connect(self._reset_layout_template)
         self.load_template_btn = PushButton("Загрузить шаблон")
@@ -690,16 +696,19 @@ class AutoShortsInterface(QWidget):
         self.render_fps_combo = ComboBox(self)
         self.render_fps_combo.addItems(["Исходный", "30", "60"])
         self.render_fps_combo.setCurrentIndex(1)
+        self.render_fps_combo.currentTextChanged.connect(lambda _v: self._schedule_template_autosave())
 
         self.render_resolution_label = BodyLabel("Разрешение:")
         self.render_resolution_combo = ComboBox(self)
         self.render_resolution_combo.addItems(["1080x1920", "720x1280", "1440x2560", "Исходное"])
         self.render_resolution_combo.setCurrentIndex(0)
+        self.render_resolution_combo.currentTextChanged.connect(lambda _v: self._schedule_template_autosave())
 
         self.render_quality_label = BodyLabel("Качество:")
         self.render_quality_combo = ComboBox(self)
         self.render_quality_combo.addItems(["Высокое", "Сбалансированное", "Быстрое"])
         self.render_quality_combo.setCurrentIndex(1)
+        self.render_quality_combo.currentTextChanged.connect(lambda _v: self._schedule_template_autosave())
 
         self.render_btn = PrimaryPushButton("Сделать шортсы из выбранных")
         self.render_btn.clicked.connect(self._start_render)
@@ -764,6 +773,11 @@ class AutoShortsInterface(QWidget):
         self.source_preview.set_keep_aspect(enabled)
         self.output_preview.set_keep_aspect(enabled)
         self.effects_preview.set_keep_aspect(enabled)
+        self._schedule_template_autosave()
+
+    def _on_layout_changed(self):
+        self._refresh_output_composite_preview()
+        self._schedule_template_autosave()
 
     def _apply_theme_style(self):
         dark = isDarkTheme()
@@ -1130,6 +1144,12 @@ class AutoShortsInterface(QWidget):
                 "saturation": self.gm_saturation.value() / 100.0,
                 "sharpness": self.gm_sharpness.value() / 100.0,
             },
+            "render_settings": {
+                "backend": self._get_render_backend(),
+                "fps": (self.render_fps_combo.currentText() or "30").strip(),
+                "resolution": (self.render_resolution_combo.currentText() or "1080x1920").strip(),
+                "quality": (self.render_quality_combo.currentText() or "Сбалансированное").strip(),
+            },
         }
 
     def _reset_layout_template(self):
@@ -1211,6 +1231,25 @@ class AutoShortsInterface(QWidget):
             self.gm_contrast_slider.setValue(self.gm_contrast.value())
             self.gm_saturation_slider.setValue(self.gm_saturation.value())
             self.gm_sharpness_slider.setValue(self.gm_sharpness.value())
+
+            render_settings = data.get("render_settings", {}) if isinstance(data, dict) else {}
+            if isinstance(render_settings, dict):
+                backend = str(render_settings.get("backend", "") or "").strip().lower()
+                if backend in {"auto", "cpu", "gpu", "cuda"}:
+                    self.render_backend_combo.setCurrentIndex(self._backend_to_index(backend))
+
+                fps_text = str(render_settings.get("fps", "") or "").strip()
+                if fps_text in {"Исходный", "30", "60"}:
+                    self.render_fps_combo.setCurrentText(fps_text)
+
+                resolution_text = str(render_settings.get("resolution", "") or "").strip()
+                if resolution_text in {"1080x1920", "720x1280", "1440x2560", "Исходное"}:
+                    self.render_resolution_combo.setCurrentText(resolution_text)
+
+                quality_text = str(render_settings.get("quality", "") or "").strip()
+                if quality_text in {"Высокое", "Сбалансированное", "Быстрое"}:
+                    self.render_quality_combo.setCurrentText(quality_text)
+
             self._refresh_output_composite_preview()
         except Exception:
             pass
@@ -1219,6 +1258,21 @@ class AutoShortsInterface(QWidget):
         spin.valueChanged.connect(slider.setValue)
         slider.valueChanged.connect(spin.setValue)
         spin.valueChanged.connect(lambda _v: self._schedule_fx_preview_refresh())
+        spin.valueChanged.connect(lambda _v: self._schedule_template_autosave())
+
+    def _schedule_template_autosave(self):
+        if hasattr(self, "_template_autosave_timer"):
+            self._template_autosave_timer.start()
+
+    def _autosave_layout_template_silent(self):
+        try:
+            self.template_path.parent.mkdir(parents=True, exist_ok=True)
+            self.template_path.write_text(
+                json.dumps(self._build_layout_template(), ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+        except Exception:
+            pass
 
     @staticmethod
     def _clamp_u8(v: float) -> int:
@@ -1548,14 +1602,7 @@ class AutoShortsInterface(QWidget):
 
     def closeEvent(self, event):
         # Тихо сохраняем последний шаблон при закрытии, чтобы он сохранялся между перезапусками
-        try:
-            self.template_path.parent.mkdir(parents=True, exist_ok=True)
-            self.template_path.write_text(
-                json.dumps(self._build_layout_template(), ensure_ascii=False, indent=2),
-                encoding="utf-8",
-            )
-        except Exception:
-            pass
+        self._autosave_layout_template_silent()
         if hasattr(self, "analyze_thread") and self.analyze_thread.isRunning():
             self.analyze_thread.terminate()
         if hasattr(self, "render_thread") and self.render_thread.isRunning():

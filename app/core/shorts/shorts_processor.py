@@ -19,8 +19,8 @@ from app.core.utils.logger import setup_logger
 logger = setup_logger("shorts_processor")
 
 RENDER_DEBUG_LOG = LOG_PATH / "auto_shorts_render.log"
-MAX_HEURISTIC_CANDIDATES = 300
-MAX_RENDER_CLIPS = 60
+MAX_HEURISTIC_CANDIDATES = None
+MAX_RENDER_CLIPS = None
 
 
 def _append_render_debug(message: str):
@@ -99,10 +99,7 @@ class ShortsProcessor:
         reranked = self._diversify_by_timeline(reranked)
         if progress_cb:
             progress_cb(85, f"Кандидаты после ранжирования: {len(reranked)}")
-        final_candidates = reranked[:MAX_HEURISTIC_CANDIDATES]
-        if progress_cb and len(reranked) > len(final_candidates):
-            progress_cb(92, f"Ограничение списка для качества/скорости: {len(final_candidates)} из {len(reranked)}")
-
+        final_candidates = list(reranked)
         return final_candidates
 
     def _llm_ready(self) -> bool:
@@ -999,13 +996,6 @@ def render_shorts(
     # Рендерим выбранные пользователем кандидаты как есть, без скрытой дедупликации,
     # чтобы количество шортсов соответствовало количеству выбранных позиций.
     render_candidates = list(candidates)
-    if len(render_candidates) > MAX_RENDER_CLIPS:
-        _append_render_debug(
-            f"CANDIDATES_TRIM render={MAX_RENDER_CLIPS} from={len(render_candidates)}"
-        )
-        render_candidates = render_candidates[:MAX_RENDER_CLIPS]
-        if progress_cb:
-            progress_cb(1, f"Ограничено к рендеру: {len(render_candidates)} клипов (из {len(candidates)})")
 
     results: List[str] = []
     total = max(1, len(render_candidates))
@@ -1135,9 +1125,12 @@ def render_shorts(
             _append_render_debug(f"CANCELLED before clip {i}/{total}")
             break
 
-        start_s = max(0.0, c.start_ms / 1000.0)
-        end_s = max(start_s + 0.2, c.end_ms / 1000.0)
+        clip_head_pad_s = 0.10
+        clip_tail_pad_s = 0.35
+        start_s = max(0.0, (c.start_ms / 1000.0) - clip_head_pad_s)
+        end_s = max(start_s + 0.2, (c.end_ms / 1000.0) + clip_tail_pad_s)
         duration_s = max(0.2, end_s - start_s)
+        clip_start_ms = int(round(start_s * 1000.0))
         title_part = _safe_filename(c.title or c.excerpt or "short")
         out_name = f"шорт_{i:03d}_{title_part}_{int(start_s)}-{int(end_s)}с.mp4"
         out_path = out_dir / out_name
@@ -1149,8 +1142,8 @@ def render_shorts(
             norm: List[Tuple[int, int]] = []
             # Небольшой контекст до/после речи, чтобы не рубить слова на стыках.
             # Это заметно смягчает "телепорт" между репликами.
-            pre_pad_ms = 120
-            post_pad_ms = 170
+            pre_pad_ms = 220
+            post_pad_ms = 320
             for it in raw:
                 try:
                     s, e = int(it[0]), int(it[1])
@@ -1158,7 +1151,7 @@ def render_shorts(
                     continue
                 s = max(c.start_ms, s - pre_pad_ms)
                 e = min(c.end_ms, e + post_pad_ms)
-                if e - s >= 140:
+                if e - s >= 180:
                     norm.append((s, e))
             if not norm:
                 return [(c.start_ms, c.end_ms)]
@@ -1168,7 +1161,7 @@ def render_shorts(
                 ps, pe = merged[-1]
                 # Чуть более мягкий merge после добавления контекста,
                 # чтобы не плодить дробные микро-склейки.
-                if s - pe <= 180:
+                if s - pe <= 260:
                     merged[-1] = (ps, max(pe, e))
                 else:
                     merged.append((s, e))
@@ -1195,8 +1188,8 @@ def render_shorts(
             trim_parts = []
             audio_parts = []
             for idx_r, (rs, re_) in enumerate(candidate_ranges):
-                rel_s = max(0.0, (rs - c.start_ms) / 1000.0)
-                rel_e = max(rel_s + 0.05, (re_ - c.start_ms) / 1000.0)
+                rel_s = max(0.0, (rs - clip_start_ms) / 1000.0)
+                rel_e = max(rel_s + 0.05, (re_ - clip_start_ms) / 1000.0)
                 trim_parts.append(
                     f"[0:v]trim=start={rel_s:.3f}:end={rel_e:.3f},setpts=PTS-STARTPTS[vp{idx_r}]"
                 )

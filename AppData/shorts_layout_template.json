@@ -11,7 +11,7 @@
     "out_h": 637
   },
   "game": {
-    "crop_x": 489,
+    "crop_x": 503,
     "crop_y": 0,
     "crop_w": 1611,
     "crop_h": 1440,
@@ -21,15 +21,21 @@
     "out_h": 1280
   },
   "webcam_fx": {
-    "brightness": 0.06,
-    "contrast": 1.1,
+    "brightness": 0.14,
+    "contrast": 1.27,
     "saturation": 1.0,
     "sharpness": 0.0
   },
   "game_fx": {
-    "brightness": 0.1,
-    "contrast": 1.17,
+    "brightness": 0.18,
+    "contrast": 1.35,
     "saturation": 1.0,
-    "sharpness": 0.0
+    "sharpness": 0.02
+  },
+  "render_settings": {
+    "backend": "gpu",
+    "fps": "60",
+    "resolution": "1080x1920",
+    "quality": "Сбалансированное"
   }
 }
