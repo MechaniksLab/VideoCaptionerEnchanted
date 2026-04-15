@@ -664,6 +664,21 @@ def render_shorts(
     out_w, out_h = vertical_resolution.split("x")
     out_w_i, out_h_i = int(out_w), int(out_h)
 
+    def _safe_filename(name: str, max_len: int = 72) -> str:
+        raw = (name or "").strip()
+        if not raw:
+            return "без_названия"
+        # Windows-safe: убираем запрещённые символы и управляющие коды,
+        # но оставляем кириллицу для понятных русских имён.
+        raw = re.sub(r'[<>:"/\\|?*]+', " ", raw)
+        raw = re.sub(r"[\x00-\x1F]", "", raw)
+        raw = re.sub(r"\s+", " ", raw).strip(" .")
+        if not raw:
+            raw = "без_названия"
+        if len(raw) > max_len:
+            raw = raw[:max_len].rstrip(" .")
+        return raw
+
     def _safe_int(v, default=0):
         try:
             return int(v)
@@ -1021,7 +1036,8 @@ def render_shorts(
         start_s = max(0.0, c.start_ms / 1000.0)
         end_s = max(start_s + 0.2, c.end_ms / 1000.0)
         duration_s = max(0.2, end_s - start_s)
-        out_name = f"short_{i:03d}_{int(start_s)}s_{int(end_s)}s.mp4"
+        title_part = _safe_filename(c.title or c.excerpt or "short")
+        out_name = f"шорт_{i:03d}_{title_part}_{int(start_s)}-{int(end_s)}с.mp4"
         out_path = out_dir / out_name
 
         def _normalize_candidate_ranges() -> List[Tuple[int, int]]:
@@ -1029,13 +1045,17 @@ def render_shorts(
             if not raw:
                 return [(c.start_ms, c.end_ms)]
             norm: List[Tuple[int, int]] = []
+            # Небольшой контекст до/после речи, чтобы не рубить слова на стыках.
+            # Это заметно смягчает "телепорт" между репликами.
+            pre_pad_ms = 120
+            post_pad_ms = 170
             for it in raw:
                 try:
                     s, e = int(it[0]), int(it[1])
                 except Exception:
                     continue
-                s = max(c.start_ms, s)
-                e = min(c.end_ms, e)
+                s = max(c.start_ms, s - pre_pad_ms)
+                e = min(c.end_ms, e + post_pad_ms)
                 if e - s >= 140:
                     norm.append((s, e))
             if not norm:
@@ -1044,7 +1064,9 @@ def render_shorts(
             merged: List[Tuple[int, int]] = [norm[0]]
             for s, e in norm[1:]:
                 ps, pe = merged[-1]
-                if s - pe <= 90:
+                # Чуть более мягкий merge после добавления контекста,
+                # чтобы не плодить дробные микро-склейки.
+                if s - pe <= 180:
                     merged[-1] = (ps, max(pe, e))
                 else:
                     merged.append((s, e))
