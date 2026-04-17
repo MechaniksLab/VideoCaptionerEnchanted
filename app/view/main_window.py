@@ -1,7 +1,7 @@
 import os
 
 import psutil
-from PyQt5.QtCore import QSize, QThread, QUrl
+from PyQt5.QtCore import QSize, QThread, QUrl, pyqtSignal
 from PyQt5.QtGui import QDesktopServices, QIcon
 from PyQt5.QtWidgets import QApplication
 from qfluentwidgets import FluentIcon as FIF
@@ -17,6 +17,7 @@ from app.common.config import cfg
 from app.common.theme_manager import apply_vscode_theme
 from app.components.DonateDialog import DonateDialog
 from app.config import APP_ICON_PATH, APP_NAME, APP_SPLASH_LOGO_PATH, GITHUB_REPO_URL
+from app.core.github_update_manager import GitHubUpdateManager
 from app.thread.version_manager_thread import VersionManager
 from app.view.batch_process_interface import BatchProcessInterface
 from app.view.home_interface import HomeInterface
@@ -32,6 +33,7 @@ class MainWindow(FluentWindow):
     def __init__(self):
         super().__init__()
         self.initWindow()
+        self.updateManager = GitHubUpdateManager()
 
         # 创建子界面
         self.homeInterface = HomeInterface(self)
@@ -54,6 +56,13 @@ class MainWindow(FluentWindow):
         self.initNavigation()
         apply_vscode_theme(refresh_widgets=True)
         self.splashScreen.finish()
+
+        # Ненавязчивая проверка обновлений из репозитория
+        try:
+            if bool(cfg.checkUpdateAtStartUp.value):
+                self._start_repo_update_check_async()
+        except Exception:
+            pass
 
         # 注册退出处理， 清理进程
         import atexit
@@ -119,7 +128,7 @@ class MainWindow(FluentWindow):
             "Информация о GitHub",
             "MechaniksLab Creator Studio разработан автором как независимый проект и размещён на GitHub."
             " Буду рад вашим Star и Fork. Если столкнётесь с проблемами или багами —"
-            " пожалуйста, создайте Issue.\n\n https://github.com/MechaniksLab/VideoCaptionerEnchanted",
+            " пожалуйста, создайте Issue.\n\n https://github.com/MechaniksLab/ShortsCreatorStudio",
             self,
         )
         w.yesButton.setText("Открыть GitHub")
@@ -150,6 +159,71 @@ class MainWindow(FluentWindow):
         w.cancelButton.hide()
         w.exec()
 
+    def _check_repo_update_silently(self):
+        info = self.updateManager.check_update()
+        if not info.get("has_update"):
+            return
+
+        latest = info.get("latest") or {}
+        message = str(latest.get("message") or "").strip()
+        short_sha = str(latest.get("sha") or "")[:8]
+
+        text = f"Доступно обновление из GitHub ({short_sha})."
+        if message:
+            text += f"\n\nПоследний коммит:\n{message[:400]}"
+
+        box = MessageBox("Доступно обновление", text, self)
+        box.yesButton.setText("Обновить и перезапустить")
+        box.cancelButton.setText("Позже")
+        if box.exec():
+            result = self.updateManager.apply_update_and_restart()
+            if result.get("ok"):
+                QApplication.quit()
+            else:
+                err = str(result.get("error") or "Не удалось применить обновление")
+                fail_box = MessageBox("Ошибка обновления", err, self)
+                fail_box.yesButton.setText("ОК")
+                fail_box.cancelButton.hide()
+                fail_box.exec()
+
+    def _start_repo_update_check_async(self):
+        self.repoUpdateThread = RepoUpdateCheckThread()
+        self.repoUpdateThread.finishedCheck.connect(self._on_repo_update_check_finished)
+        self.repoUpdateThread.failed.connect(self._on_repo_update_check_failed)
+        self.repoUpdateThread.start()
+
+    def _on_repo_update_check_finished(self, info):
+        if not isinstance(info, dict):
+            return
+        if not info.get("has_update"):
+            return
+
+        latest = info.get("latest") or {}
+        message = str(latest.get("message") or "").strip()
+        short_sha = str(latest.get("sha") or "")[:8]
+
+        text = f"Доступно обновление из GitHub ({short_sha})."
+        if message:
+            text += f"\n\nПоследний коммит:\n{message[:400]}"
+
+        box = MessageBox("Доступно обновление", text, self)
+        box.yesButton.setText("Обновить и перезапустить")
+        box.cancelButton.setText("Позже")
+        if box.exec():
+            result = self.updateManager.apply_update_and_restart()
+            if result.get("ok"):
+                QApplication.quit()
+            else:
+                err = str(result.get("error") or "Не удалось применить обновление")
+                fail_box = MessageBox("Ошибка обновления", err, self)
+                fail_box.yesButton.setText("ОК")
+                fail_box.cancelButton.hide()
+                fail_box.exec()
+
+    def _on_repo_update_check_failed(self, _error: str):
+        # Проверка на старте должна быть максимально ненавязчивой.
+        pass
+
     def resizeEvent(self, e):
         super().resizeEvent(e)
         if hasattr(self, "splashScreen"):
@@ -175,3 +249,15 @@ class MainWindow(FluentWindow):
         process = psutil.Process(os.getpid())
         for child in process.children(recursive=True):
             child.kill()
+
+
+class RepoUpdateCheckThread(QThread):
+    finishedCheck = pyqtSignal(object)
+    failed = pyqtSignal(str)
+
+    def run(self):
+        try:
+            info = GitHubUpdateManager().check_update()
+            self.finishedCheck.emit(info)
+        except Exception as e:
+            self.failed.emit(str(e))

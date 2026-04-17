@@ -7,10 +7,13 @@ YEAR = 2025
 APP_NAME = "MechaniksLab Creator Studio"
 AUTHOR = "MechaniksLab"
 
-HELP_URL = "https://github.com/MechaniksLab/VideoCaptionerEnchanted"
-GITHUB_REPO_URL = "https://github.com/MechaniksLab/VideoCaptionerEnchanted"
-RELEASE_URL = "https://github.com/MechaniksLab/VideoCaptionerEnchanted/releases/latest"
-FEEDBACK_URL = "https://github.com/MechaniksLab/VideoCaptionerEnchanted/issues"
+HELP_URL = "https://github.com/MechaniksLab/ShortsCreatorStudio"
+GITHUB_REPO_URL = "https://github.com/MechaniksLab/ShortsCreatorStudio"
+RELEASE_URL = "https://github.com/MechaniksLab/ShortsCreatorStudio/releases/latest"
+FEEDBACK_URL = "https://github.com/MechaniksLab/ShortsCreatorStudio/issues"
+UPDATE_REPO_OWNER = "MechaniksLab"
+UPDATE_REPO_NAME = "ShortsCreatorStudio"
+UPDATE_REPO_BRANCH = "master"
 
 # 路径
 ROOT_PATH = Path(__file__).parent

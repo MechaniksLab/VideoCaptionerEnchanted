@@ -56,7 +56,11 @@
         "SiliconCloud_Model": "gpt-4o-mini"
     },
     "Update": {
-        "CheckUpdateAtStartUp": true
+        "CheckUpdateAtStartUp": true,
+        "LastKnownCommit": "748676781af531406209b3bf81ecef045e9d1bfc",
+        "RepoBranch": "main",
+        "RepoName": "ShortsCreatorStudio",
+        "RepoOwner": "MechaniksLab"
     },
     "Subtitle": {
         "CustomPromptText": "",

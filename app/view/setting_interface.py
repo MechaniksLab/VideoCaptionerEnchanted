@@ -26,6 +26,7 @@ from app.components.LineEditSettingCard import LineEditSettingCard
 from app.config import APP_NAME, AUTHOR, FEEDBACK_URL, HELP_URL, RELEASE_URL, VERSION, YEAR
 from app.core.entities import LLMServiceEnum, TranscribeModelEnum, TranslatorServiceEnum
 from app.core.utils.test_opanai import get_openai_models, test_openai
+from app.core.github_update_manager import GitHubUpdateManager
 from app.thread.version_manager_thread import VersionManager
 from app.components.MySettingCard import ComboBoxSettingCard as MyComboBoxSettingCard
 from app.components.MySettingCard import ColorSettingCard
@@ -37,6 +38,7 @@ class SettingInterface(ScrollArea):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.setWindowTitle("Настройки")
+        self.githubUpdateManager = GitHubUpdateManager()
         self.scrollWidget = QWidget()
         self.expandLayout = ExpandLayout(self.scrollWidget)
         self.settingLabel = QLabel("Настройки", self)
@@ -74,6 +76,7 @@ class SettingInterface(ScrollArea):
         self.personalGroup = SettingCardGroup("Персонализация", self.scrollWidget)
         # 关于组
         self.aboutGroup = SettingCardGroup("О программе", self.scrollWidget)
+        self.updateGroup = SettingCardGroup("Обновления из GitHub", self.scrollWidget)
 
     def __initCards(self):
         """初始化所有配置卡片"""
@@ -267,6 +270,29 @@ class SettingInterface(ScrollArea):
             self.aboutGroup,
         )
 
+        # 更新（GitHub）
+        self.checkUpdateAtStartupCard = SwitchSettingCard(
+            FIF.UPDATE,
+            "Проверять обновления при старте",
+            "Ненавязчиво проверять новый коммит в официальном репозитории",
+            cfg.checkUpdateAtStartUp,
+            self.updateGroup,
+        )
+        self.checkRepoUpdateCard = PushSettingCard(
+            "Проверить",
+            FIF.SYNC,
+            "Проверить обновление сейчас",
+            "Проверяет последний коммит в GitHub",
+            self.updateGroup,
+        )
+        self.applyRepoUpdateCard = PrimaryPushSettingCard(
+            "Обновить и перезапустить",
+            FIF.DOWNLOAD,
+            "Применить обновление из GitHub",
+            "Скачает актуальный код и перезапустит программу",
+            self.updateGroup,
+        )
+
         # 添加卡片到对应的组
         self.translateGroup.addSettingCard(self.subtitleCorrectCard)
         self.translateGroup.addSettingCard(self.subtitleTranslateCard)
@@ -293,6 +319,10 @@ class SettingInterface(ScrollArea):
         self.aboutGroup.addSettingCard(self.helpCard)
         self.aboutGroup.addSettingCard(self.feedbackCard)
         self.aboutGroup.addSettingCard(self.aboutCard)
+
+        self.updateGroup.addSettingCard(self.checkUpdateAtStartupCard)
+        self.updateGroup.addSettingCard(self.checkRepoUpdateCard)
+        self.updateGroup.addSettingCard(self.applyRepoUpdateCard)
 
     def __createLLMServiceCards(self):
         """创建LLM服务相关的配置卡片"""
@@ -579,6 +609,7 @@ class SettingInterface(ScrollArea):
         # 将所有组添加到布局
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(36, 10, 36, 0)
+        self.expandLayout.addWidget(self.updateGroup)
         self.expandLayout.addWidget(self.transcribeGroup)
         self.expandLayout.addWidget(self.llmGroup)
         self.expandLayout.addWidget(self.translate_serviceGroup)
@@ -627,6 +658,10 @@ class SettingInterface(ScrollArea):
 
         # 关于
         self.aboutCard.clicked.connect(self.checkUpdate)
+
+        # GitHub update
+        self.checkRepoUpdateCard.clicked.connect(self._check_repo_update_now)
+        self.applyRepoUpdateCard.clicked.connect(self._apply_repo_update_now)
 
         # 全局 signalBus
         self.transcribeModelCard.comboBox.currentTextChanged.connect(
@@ -802,6 +837,51 @@ class SettingInterface(ScrollArea):
 
     def checkUpdate(self):
         webbrowser.open(RELEASE_URL)
+
+    def _check_repo_update_now(self):
+        try:
+            info = self.githubUpdateManager.check_update()
+            if info.get("baseline_initialized"):
+                text = "База обновлений инициализирована. Следующий новый коммит будет предложен как обновление."
+            elif info.get("has_update"):
+                latest = info.get("latest") or {}
+                text = (
+                    f"Найден новый коммит: {str(latest.get('sha') or '')[:8]}\n\n"
+                    f"{str(latest.get('message') or '').strip()[:500]}"
+                )
+            else:
+                text = "У вас актуальная версия относительно последнего коммита выбранной ветки."
+            box = MessageBox("Проверка обновлений", text, self)
+            box.yesButton.setText("ОК")
+            box.cancelButton.hide()
+            box.exec()
+        except Exception as e:
+            InfoBar.error("Ошибка", f"Проверка обновления не удалась: {e}", duration=3500, parent=self)
+
+    def _apply_repo_update_now(self):
+        try:
+            result = self.githubUpdateManager.apply_update_and_restart()
+            if result.get("ok"):
+                box = MessageBox(
+                    "Обновление запущено",
+                    "Файлы обновления скачаны. Приложение будет закрыто для применения обновления и перезапуска.",
+                    self,
+                )
+                box.yesButton.setText("ОК")
+                box.cancelButton.hide()
+                box.exec()
+                from PyQt5.QtWidgets import QApplication
+
+                QApplication.quit()
+            else:
+                InfoBar.error(
+                    "Ошибка обновления",
+                    str(result.get("error") or "Не удалось применить обновление"),
+                    duration=4500,
+                    parent=self,
+                )
+        except Exception as e:
+            InfoBar.error("Ошибка", f"Обновление не удалось: {e}", duration=4500, parent=self)
 
     def __onLLMServiceChanged(self, service):
         """处理LLM服务切换事件"""
