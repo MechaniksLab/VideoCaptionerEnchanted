@@ -448,14 +448,14 @@ class AutoShortsInterface(QWidget):
         params_row = QHBoxLayout()
         params_row.addWidget(BodyLabel("Мин. длительность (сек):"))
         self.min_duration = SpinBox(self)
-        self.min_duration.setRange(8, 90)
-        self.min_duration.setValue(15)
+        self.min_duration.setRange(8, 120)
+        self.min_duration.setValue(22)
         params_row.addWidget(self.min_duration)
 
         params_row.addWidget(BodyLabel("Макс. длительность (сек):"))
         self.max_duration = SpinBox(self)
         self.max_duration.setRange(20, 300)
-        self.max_duration.setValue(90)
+        self.max_duration.setValue(110)
         params_row.addWidget(self.max_duration)
 
         self.analyze_btn = PrimaryPushButton("Найти интересные моменты")
@@ -665,36 +665,25 @@ class AutoShortsInterface(QWidget):
         fx_title = StrongBodyLabel("Цветокоррекция слоёв")
         template_layout.addWidget(fx_title)
 
-        webcam_fx_row = QHBoxLayout()
-        webcam_fx_row.addWidget(BodyLabel("WEBCAM:"))
-        webcam_fx_row.addWidget(BodyLabel("Ярк."))
+        webcam_title = StrongBodyLabel("WEBCAM")
+        template_layout.addWidget(webcam_title)
+
         self.wc_brightness = SpinBox(self)
         self.wc_brightness.setRange(-50, 50)
         self.wc_brightness.setValue(0)
         self.wc_brightness.setAccelerated(True)
-        webcam_fx_row.addWidget(self.wc_brightness)
-        webcam_fx_row.addWidget(BodyLabel("Контр."))
         self.wc_contrast = SpinBox(self)
         self.wc_contrast.setRange(50, 180)
         self.wc_contrast.setValue(100)
         self.wc_contrast.setAccelerated(True)
-        webcam_fx_row.addWidget(self.wc_contrast)
-        webcam_fx_row.addWidget(BodyLabel("Насыщ."))
         self.wc_saturation = SpinBox(self)
         self.wc_saturation.setRange(50, 180)
         self.wc_saturation.setValue(100)
         self.wc_saturation.setAccelerated(True)
-        webcam_fx_row.addWidget(self.wc_saturation)
-        webcam_fx_row.addWidget(BodyLabel("Резкость"))
         self.wc_sharpness = SpinBox(self)
         self.wc_sharpness.setRange(0, 200)
         self.wc_sharpness.setValue(0)
         self.wc_sharpness.setAccelerated(True)
-        webcam_fx_row.addWidget(self.wc_sharpness)
-        webcam_fx_row.addStretch(1)
-        template_layout.addLayout(webcam_fx_row)
-
-        webcam_slider_row = QHBoxLayout()
         self.wc_brightness_slider = QSlider(Qt.Horizontal, self)
         self.wc_brightness_slider.setRange(-50, 50)
         self.wc_brightness_slider.setValue(0)
@@ -707,42 +696,58 @@ class AutoShortsInterface(QWidget):
         self.wc_sharpness_slider = QSlider(Qt.Horizontal, self)
         self.wc_sharpness_slider.setRange(0, 200)
         self.wc_sharpness_slider.setValue(0)
-        webcam_slider_row.addWidget(self.wc_brightness_slider)
-        webcam_slider_row.addWidget(self.wc_contrast_slider)
-        webcam_slider_row.addWidget(self.wc_saturation_slider)
-        webcam_slider_row.addWidget(self.wc_sharpness_slider)
-        template_layout.addLayout(webcam_slider_row)
 
-        game_fx_row = QHBoxLayout()
-        game_fx_row.addWidget(BodyLabel("GAME:"))
-        game_fx_row.addWidget(BodyLabel("Ярк."))
+        webcam_controls_row = QHBoxLayout()
+        webcam_controls_row.setSpacing(16)
+
+        def _add_fx_column(parent_row: QHBoxLayout, title: str, spin: SpinBox, slider: QSlider):
+            container = QWidget(self)
+            container_layout = QVBoxLayout(container)
+            container_layout.setContentsMargins(0, 0, 0, 0)
+            container_layout.setSpacing(6)
+
+            head_row = QHBoxLayout()
+            head_row.setContentsMargins(0, 0, 0, 0)
+            head_row.setSpacing(6)
+            head_row.addStretch(1)
+            head_row.addWidget(BodyLabel(title))
+            head_row.addWidget(spin)
+            head_row.addStretch(1)
+
+            slider.setMinimumWidth(200)
+
+            container_layout.addLayout(head_row)
+            container_layout.addWidget(slider)
+            parent_row.addWidget(container)
+
+        webcam_controls_row.addStretch(1)
+        _add_fx_column(webcam_controls_row, "Ярк.", self.wc_brightness, self.wc_brightness_slider)
+        _add_fx_column(webcam_controls_row, "Контр.", self.wc_contrast, self.wc_contrast_slider)
+        _add_fx_column(webcam_controls_row, "Насыщ.", self.wc_saturation, self.wc_saturation_slider)
+        _add_fx_column(webcam_controls_row, "Резкость", self.wc_sharpness, self.wc_sharpness_slider)
+        webcam_controls_row.addStretch(1)
+        template_layout.addLayout(webcam_controls_row)
+
+        game_title = StrongBodyLabel("GAME")
+        template_layout.addWidget(game_title)
+
         self.gm_brightness = SpinBox(self)
         self.gm_brightness.setRange(-50, 50)
         self.gm_brightness.setValue(0)
         self.gm_brightness.setAccelerated(True)
-        game_fx_row.addWidget(self.gm_brightness)
-        game_fx_row.addWidget(BodyLabel("Контр."))
         self.gm_contrast = SpinBox(self)
         self.gm_contrast.setRange(50, 180)
         self.gm_contrast.setValue(100)
         self.gm_contrast.setAccelerated(True)
-        game_fx_row.addWidget(self.gm_contrast)
-        game_fx_row.addWidget(BodyLabel("Насыщ."))
         self.gm_saturation = SpinBox(self)
         self.gm_saturation.setRange(50, 180)
         self.gm_saturation.setValue(100)
         self.gm_saturation.setAccelerated(True)
-        game_fx_row.addWidget(self.gm_saturation)
-        game_fx_row.addWidget(BodyLabel("Резкость"))
         self.gm_sharpness = SpinBox(self)
         self.gm_sharpness.setRange(0, 200)
         self.gm_sharpness.setValue(0)
         self.gm_sharpness.setAccelerated(True)
-        game_fx_row.addWidget(self.gm_sharpness)
-        game_fx_row.addStretch(1)
-        template_layout.addLayout(game_fx_row)
 
-        game_slider_row = QHBoxLayout()
         self.gm_brightness_slider = QSlider(Qt.Horizontal, self)
         self.gm_brightness_slider.setRange(-50, 50)
         self.gm_brightness_slider.setValue(0)
@@ -755,11 +760,16 @@ class AutoShortsInterface(QWidget):
         self.gm_sharpness_slider = QSlider(Qt.Horizontal, self)
         self.gm_sharpness_slider.setRange(0, 200)
         self.gm_sharpness_slider.setValue(0)
-        game_slider_row.addWidget(self.gm_brightness_slider)
-        game_slider_row.addWidget(self.gm_contrast_slider)
-        game_slider_row.addWidget(self.gm_saturation_slider)
-        game_slider_row.addWidget(self.gm_sharpness_slider)
-        template_layout.addLayout(game_slider_row)
+
+        game_controls_row = QHBoxLayout()
+        game_controls_row.setSpacing(16)
+        game_controls_row.addStretch(1)
+        _add_fx_column(game_controls_row, "Ярк.", self.gm_brightness, self.gm_brightness_slider)
+        _add_fx_column(game_controls_row, "Контр.", self.gm_contrast, self.gm_contrast_slider)
+        _add_fx_column(game_controls_row, "Насыщ.", self.gm_saturation, self.gm_saturation_slider)
+        _add_fx_column(game_controls_row, "Резкость", self.gm_sharpness, self.gm_sharpness_slider)
+        game_controls_row.addStretch(1)
+        template_layout.addLayout(game_controls_row)
 
         self._link_fx_control_pair(self.wc_brightness, self.wc_brightness_slider)
         self._link_fx_control_pair(self.wc_contrast, self.wc_contrast_slider)
@@ -840,9 +850,14 @@ class AutoShortsInterface(QWidget):
         self.main_layout.addWidget(self.progress_bar)
         self.main_layout.addWidget(self.progress_label)
 
+        output_row = QHBoxLayout()
         self.output_hint_label = BodyLabel("Папка результата: пока нет")
         self.output_hint_label.setWordWrap(True)
-        self.main_layout.addWidget(self.output_hint_label)
+        self.open_output_folder_btn = PushButton("Открыть папку с шортсами")
+        self.open_output_folder_btn.clicked.connect(self._open_output_folder)
+        output_row.addWidget(self.output_hint_label, 1)
+        output_row.addWidget(self.open_output_folder_btn)
+        self.main_layout.addLayout(output_row)
 
         self.rendered_card = CardWidget(self)
         self.rendered_card.setObjectName("shortsRenderedCard")
@@ -1248,6 +1263,10 @@ class AutoShortsInterface(QWidget):
         out = self.output_preview.get_layers()
         return {
             "enabled": self.dual_layer_enabled.isChecked(),
+            "source_canvas": {
+                "w": int(self.source_width),
+                "h": int(self.source_height),
+            },
             "webcam": {
                 "crop_x": src["webcam"]["x"],
                 "crop_y": src["webcam"]["y"],
@@ -1344,13 +1363,50 @@ class AutoShortsInterface(QWidget):
             if not self.template_path.exists():
                 return
             data = json.loads(self.template_path.read_text(encoding="utf-8"))
+            source_canvas = data.get("source_canvas", {}) if isinstance(data, dict) else {}
+            try:
+                saved_w = int(source_canvas.get("w", self.source_width))
+                saved_h = int(source_canvas.get("h", self.source_height))
+            except Exception:
+                saved_w, saved_h = int(self.source_width), int(self.source_height)
+
+            # Целевой canvas должен совпадать с текущим кадром видео, иначе
+            # координаты crop начинают "съезжать" между предпросмотром и рендером.
+            target_w = int(self.source_width)
+            target_h = int(self.source_height)
+            if target_w < 2 or target_h < 2:
+                target_w = max(2, saved_w)
+                target_h = max(2, saved_h)
+
+            self.source_preview.set_canvas_size(target_w, target_h)
+            self.source_width, self.source_height = target_w, target_h
+
+            sx = target_w / max(1, saved_w)
+            sy = target_h / max(1, saved_h)
+
+            def _scaled(v, s):
+                try:
+                    return int(round(float(v) * s))
+                except Exception:
+                    return 0
+
             wc = data.get("webcam", {})
             gm = data.get("game", {})
             self.dual_layer_enabled.setChecked(bool(data.get("enabled", True)))
 
             self.source_preview.set_layers(
-                QRectF(int(wc.get("crop_x", 0)), int(wc.get("crop_y", 0)), int(wc.get("crop_w", 320)), int(wc.get("crop_h", 240))),
-                QRectF(int(gm.get("crop_x", 0)), int(gm.get("crop_y", 0)), int(gm.get("crop_w", 640)), int(gm.get("crop_h", 360))),
+                QRectF(
+                    _scaled(wc.get("crop_x", 0), sx),
+                    _scaled(wc.get("crop_y", 0), sy),
+                    max(2, _scaled(wc.get("crop_w", 320), sx)),
+                    max(2, _scaled(wc.get("crop_h", 240), sy)),
+                ),
+                QRectF(
+                    _scaled(gm.get("crop_x", 0), sx),
+                    _scaled(gm.get("crop_y", 0), sy),
+                    max(2, _scaled(gm.get("crop_w", 640), sx)),
+                    max(2, _scaled(gm.get("crop_h", 360), sy)),
+                ),
             )
             self.output_preview.set_layers(
                 QRectF(int(wc.get("out_x", 0)), int(wc.get("out_y", 0)), int(wc.get("out_w", 1080)), int(wc.get("out_h", 640))),

@@ -238,8 +238,10 @@ def add_subtitles(
             enc_preset = "veryfast"
             enc_crf = "20"
         else:
-            enc_preset = "medium"
-            enc_crf = "18"
+            # High: чуть более консервативное качество, чтобы при пакетной
+            # генерации не было заметной деградации относительно входа.
+            enc_preset = "slow"
+            enc_crf = "16"
 
         if Path(output).suffix.lower() == ".webm":
             vcodec = "libvpx-vp9"

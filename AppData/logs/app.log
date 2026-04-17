@@ -14788,3 +14788,500 @@ CUDA可用
 Latest version info: v1.3.3
 Latest version info: v1.3.3
 Latest version info: v1.3.3
+Latest version info: v1.3.3
+Latest version info: v1.3.3
+转换为音频执行命令: ffmpeg -i C:\Temp\tmp19tj_vd3.mp4 -map 0:a -ac 1 -ar 16000 -af aresample=async=1 -y C:\Temp\tmple5wolex.wav
+Faster Whisper 执行命令: faster-whisper-xxl -m large-v2 --print_progress --model_dir E:\Neyro\ShortsCreatorStudio\AppData\models C:\Temp\bk_asr\tmpwxznmkge\audio.wav -l ru -d cuda --compute_type float16 --output_format srt -o source --vad_filter false --one_word 1 --beep_off
+Standalone Faster-Whisper-XXL r245.2 running on: CUDA
+Starting sequential inference to transcribe: C:\Temp\bk_asr\tmpwxznmkge\audio.wav
+4% |  25/616 | 00:07<<02:47 |  3.52 audio seconds/s
+9% |  53/616 | 00:11<<02:00 |  4.67 audio seconds/s
+13% |  82/616 | 00:18<<01:58 |  4.52 audio seconds/s
+18% | 111/616 | 00:25<<01:54 |  4.40 audio seconds/s
+22% | 134/616 | 00:31<<01:53 |  4.27 audio seconds/s
+27% | 168/616 | 00:39<<01:45 |  4.25 audio seconds/s
+32% | 195/616 | 00:45<<01:37 |  4.32 audio seconds/s
+36% | 224/616 | 00:52<<01:31 |  4.29 audio seconds/s
+41% | 250/616 | 00:56<<01:22 |  4.46 audio seconds/s
+46% | 284/616 | 01:03<<01:14 |  4.47 audio seconds/s
+51% | 313/616 | 01:09<<01:07 |  4.50 audio seconds/s
+56% | 342/616 | 01:14<<00:59 |  4.60 audio seconds/s
+61% | 373/616 | 01:18<<00:51 |  4.73 audio seconds/s
+65% | 403/616 | 01:28<<00:46 |  4.58 audio seconds/s
+69% | 427/616 | 01:34<<00:41 |  4.51 audio seconds/s
+75% | 463/616 | 01:40<<00:33 |  4.59 audio seconds/s
+78% | 482/616 | 01:47<<00:29 |  4.49 audio seconds/s
+83% | 510/616 | 02:08<<00:26 |  3.98 audio seconds/s
+87% | 538/616 | 02:50<<00:24 |  3.15 audio seconds/s
+91% | 562/616 | 02:55<<00:16 |  3.21 audio seconds/s
+96% | 589/616 | 03:00<<00:08 |  3.27 audio seconds/s
+100% | 615/616 | 03:05<<00:00 |  3.32 audio seconds/s
+100% | 616/616 | 03:05<<00:00 |  3.32 audio seconds/s
+Transcription speed: 3.32 audio seconds/s
+Subtitles are written to 'C:\Temp\bk_asr\tmpwxznmkge' directory.
+Operation finished in:  0:03:07.937
+Faster Whisper 返回值: 3221226505
+Faster Whisper 识别完成
+2026-04-17 22:03:34 - shorts_processor - WARNING - Enterprise packet parse failed: Error code: 400 - {'error': 'The number of tokens to keep from the initial prompt is greater than the context length (n_keep: 5381>= n_ctx: 5120). Try to load the model with a larger context length, or provide a shorter input.'}
+2026-04-17 22:03:34 - shorts_processor - WARNING - Enterprise packet parse failed: Error code: 400 - {'error': 'The number of tokens to keep from the initial prompt is greater than the context length (n_keep: 5726>= n_ctx: 5120). Try to load the model with a larger context length, or provide a shorter input.'}
+2026-04-17 22:03:34 - shorts_processor - WARNING - Enterprise packet parse failed: Error code: 400 - {'error': 'The number of tokens to keep from the initial prompt is greater than the context length (n_keep: 5769>= n_ctx: 5120). Try to load the model with a larger context length, or provide a shorter input.'}
+2026-04-17 22:03:35 - shorts_processor - WARNING - Enterprise packet parse failed: Error code: 400 - {'error': 'The number of tokens to keep from the initial prompt is greater than the context length (n_keep: 5804>= n_ctx: 5120). Try to load the model with a larger context length, or provide a shorter input.'}
+2026-04-17 22:03:35 - shorts_processor - WARNING - Enterprise packet parse failed: Error code: 400 - {'error': 'The number of tokens to keep from the initial prompt is greater than the context length (n_keep: 5772>= n_ctx: 5120). Try to load the model with a larger context length, or provide a shorter input.'}
+2026-04-17 22:03:36 - shorts_processor - WARNING - Enterprise packet parse failed: Error code: 400 - {'error': 'The number of tokens to keep from the initial prompt is greater than the context length (n_keep: 5745>= n_ctx: 5120). Try to load the model with a larger context length, or provide a shorter input.'}
+2026-04-17 22:03:36 - shorts_processor - WARNING - Enterprise packet parse failed: Error code: 400 - {'error': 'The number of tokens to keep from the initial prompt is greater than the context length (n_keep: 5423>= n_ctx: 5120). Try to load the model with a larger context length, or provide a shorter input.'}
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 1888.620 -t 18.640 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=14.200,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=14.660:end=18.640,setpts=PTS-STARTPTS[vp1];[0:a]atrim=start=0.000:end=14.200,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=14.660:end=18.640,asetpts=PTS-STARTPTS[ap1];[vp0][ap0][vp1][ap1]concat=n=2:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_001_Самые горячие кибер-девочки_1888-1907с.mp4
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 2212.480 -t 16.820 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=5.397,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=5.900:end=12.544,setpts=PTS-STARTPTS[vp1];[0:v]trim=start=13.080:end=16.820,setpts=PTS-STARTPTS[vp2];[0:a]atrim=start=0.000:end=5.397,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=5.900:end=12.544,asetpts=PTS-STARTPTS[ap1];[0:a]atrim=start=13.080:end=16.820,asetpts=PTS-STARTPTS[ap2];[vp0][ap0][vp1][ap1][vp2][ap2]concat=n=3:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_002_Ты можешь прочитать память андроида_2212-2229с.mp4
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 1894.640 -t 19.380 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=8.180,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=8.640:end=12.455,setpts=PTS-STARTPTS[vp1];[0:v]trim=start=13.000:end=14.580,setpts=PTS-STARTPTS[vp2];[0:v]trim=start=17.741:end=19.380,setpts=PTS-STARTPTS[vp3];[0:a]atrim=start=0.000:end=8.180,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=8.640:end=12.455,asetpts=PTS-STARTPTS[ap1];[0:a]atrim=start=13.000:end=14.580,asetpts=PTS-STARTPTS[ap2];[0:a]atrim=start=17.741:end=19.380,asetpts=PTS-STARTPTS[ap3];[vp0][ap0][vp1][ap1][vp2][ap2][vp3][ap3]concat=n=4:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_003_Че у меня с одеждой_1894-1914с.mp4
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 2282.980 -t 16.560 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=1.280,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=3.060:end=16.560,setpts=PTS-STARTPTS[vp1];[0:a]atrim=start=0.000:end=1.280,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=3.060:end=16.560,asetpts=PTS-STARTPTS[ap1];[vp0][ap0][vp1][ap1]concat=n=2:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_004_и снова. Я просила перестать, он не слушал. Вы были одни в комнате Бол…_2282-2299с.mp4
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 2316.240 -t 17.040 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=4.860,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=5.480:end=17.040,setpts=PTS-STARTPTS[vp1];[0:a]atrim=start=0.000:end=4.860,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=5.480:end=17.040,asetpts=PTS-STARTPTS[ap1];[vp0][ap0][vp1][ap1]concat=n=2:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_005_в таком виде сложно уйти незамеченной. Она может быть ещё здесь. Давай …_2316-2333с.mp4
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 2218.440 -t 22.040 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=6.584,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=7.120:end=10.680,setpts=PTS-STARTPTS[vp1];[0:v]trim=start=10.980:end=12.320,setpts=PTS-STARTPTS[vp2];[0:v]trim=start=12.980:end=15.143,setpts=PTS-STARTPTS[vp3];[0:v]trim=start=15.620:end=18.760,setpts=PTS-STARTPTS[vp4];[0:v]trim=start=19.300:end=22.040,setpts=PTS-STARTPTS[vp5];[0:a]atrim=start=0.000:end=6.584,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=7.120:end=10.680,asetpts=PTS-STARTPTS[ap1];[0:a]atrim=start=10.980:end=12.320,asetpts=PTS-STARTPTS[ap2];[0:a]atrim=start=12.980:end=15.143,asetpts=PTS-STARTPTS[ap3];[0:a]atrim=start=15.620:end=18.760,asetpts=PTS-STARTPTS[ap4];[0:a]atrim=start=19.300:end=22.040,asetpts=PTS-STARTPTS[ap5];[vp0][ap0][vp1][ap1][vp2][ap2][vp3][ap3][vp4][ap4][vp5][ap5]concat=n=6:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_006_Давай, поехали. Попытался. Попробую. Вчера от кнопки нажимать, так треб…_2218-2240с.mp4
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 1821.400 -t 20.600 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=8.900,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=9.781:end=11.279,setpts=PTS-STARTPTS[vp1];[0:v]trim=start=11.720:end=13.160,setpts=PTS-STARTPTS[vp2];[0:v]trim=start=13.740:end=15.860,setpts=PTS-STARTPTS[vp3];[0:v]trim=start=16.140:end=20.600,setpts=PTS-STARTPTS[vp4];[0:a]atrim=start=0.000:end=8.900,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=9.781:end=11.279,asetpts=PTS-STARTPTS[ap1];[0:a]atrim=start=11.720:end=13.160,asetpts=PTS-STARTPTS[ap2];[0:a]atrim=start=13.740:end=15.860,asetpts=PTS-STARTPTS[ap3];[0:a]atrim=start=16.140:end=20.600,asetpts=PTS-STARTPTS[ap4];[vp0][ap0][vp1][ap1][vp2][ap2][vp3][ap3][vp4][ap4]concat=n=5:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_007_Общественное мнение тогда там, да, вот это опять повменьшится, будут на…_1821-1842с.mp4
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 2323.880 -t 18.380 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=9.260,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=10.592:end=14.086,setpts=PTS-STARTPTS[vp1];[0:v]trim=start=14.880:end=18.380,setpts=PTS-STARTPTS[vp2];[0:a]atrim=start=0.000:end=9.260,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=10.592:end=14.086,asetpts=PTS-STARTPTS[ap1];[0:a]atrim=start=14.880:end=18.380,asetpts=PTS-STARTPTS[ap2];[vp0][ap0][vp1][ap1][vp2][ap2]concat=n=3:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_008_андроидов ты вычислишь Да, она в капсуле стоит. Девиантов сложно вычис…_2323-2342с.mp4
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 2275.840 -t 19.060 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=4.320,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=6.640:end=8.420,setpts=PTS-STARTPTS[vp1];[0:v]trim=start=10.200:end=19.060,setpts=PTS-STARTPTS[vp2];[0:a]atrim=start=0.000:end=4.320,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=6.640:end=8.420,asetpts=PTS-STARTPTS[ap1];[0:a]atrim=start=10.200:end=19.060,asetpts=PTS-STARTPTS[ap2];[vp0][ap0][vp1][ap1][vp2][ap2]concat=n=3:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_009_Как всё случилось Он начал бить меня. Снова и снова. Я просила переста…_2275-2294с.mp4
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 2111.640 -t 20.760 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=5.980,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=6.506:end=7.534,setpts=PTS-STARTPTS[vp1];[0:v]trim=start=7.800:end=10.940,setpts=PTS-STARTPTS[vp2];[0:v]trim=start=12.207:end=13.980,setpts=PTS-STARTPTS[vp3];[0:v]trim=start=15.973:end=20.720,setpts=PTS-STARTPTS[vp4];[0:a]atrim=start=0.000:end=5.980,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=6.506:end=7.534,asetpts=PTS-STARTPTS[ap1];[0:a]atrim=start=7.800:end=10.940,asetpts=PTS-STARTPTS[ap2];[0:a]atrim=start=12.207:end=13.980,asetpts=PTS-STARTPTS[ap3];[0:a]atrim=start=15.973:end=20.720,asetpts=PTS-STARTPTS[ap4];[vp0][ap0][vp1][ap1][vp2][ap2][vp3][ap3][vp4][ap4]concat=n=5:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_010_Эй! Конор, мерзость какая! Да мне надо изучить всё. Мне бы тут не сплев…_2111-2132с.mp4
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 2196.740 -t 20.520 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=2.320,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=2.800:end=5.240,setpts=PTS-STARTPTS[vp1];[0:v]trim=start=5.540:end=11.580,setpts=PTS-STARTPTS[vp2];[0:v]trim=start=12.860:end=20.520,setpts=PTS-STARTPTS[vp3];[0:a]atrim=start=0.000:end=2.320,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=2.800:end=5.240,asetpts=PTS-STARTPTS[ap1];[0:a]atrim=start=5.540:end=11.580,asetpts=PTS-STARTPTS[ap2];[0:a]atrim=start=12.860:end=20.520,asetpts=PTS-STARTPTS[ap3];[vp0][ap0][vp1][ap1][vp2][ap2][vp3][ap3]concat=n=4:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_011_Это был не сердечный приступ. Его задушили. Да, я видел синяки на шее. …_2196-2217с.mp4
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 1972.100 -t 18.020 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=4.800,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=6.251:end=7.820,setpts=PTS-STARTPTS[vp1];[0:v]trim=start=8.640:end=10.500,setpts=PTS-STARTPTS[vp2];[0:v]trim=start=10.883:end=13.580,setpts=PTS-STARTPTS[vp3];[0:v]trim=start=15.520:end=18.020,setpts=PTS-STARTPTS[vp4];[0:a]atrim=start=0.000:end=4.800,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=6.251:end=7.820,asetpts=PTS-STARTPTS[ap1];[0:a]atrim=start=8.640:end=10.500,asetpts=PTS-STARTPTS[ap2];[0:a]atrim=start=10.883:end=13.580,asetpts=PTS-STARTPTS[ap3];[0:a]atrim=start=15.520:end=18.020,asetpts=PTS-STARTPTS[ap4];[vp0][ap0][vp1][ap1][vp2][ap2][vp3][ap3][vp4][ap4]concat=n=5:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_012_Ты смотри-ка, че Ты смотри-ка, ты смотри-ка, ну-ка ещё раз наклонись. …_1972-1990с.mp4
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 2072.560 -t 16.640 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=3.139,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=3.788:end=5.240,setpts=PTS-STARTPTS[vp1];[0:v]trim=start=5.728:end=9.060,setpts=PTS-STARTPTS[vp2];[0:v]trim=start=9.620:end=13.220,setpts=PTS-STARTPTS[vp3];[0:v]trim=start=13.520:end=14.560,setpts=PTS-STARTPTS[vp4];[0:v]trim=start=15.080:end=16.640,setpts=PTS-STARTPTS[vp5];[0:a]atrim=start=0.000:end=3.139,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=3.788:end=5.240,asetpts=PTS-STARTPTS[ap1];[0:a]atrim=start=5.728:end=9.060,asetpts=PTS-STARTPTS[ap2];[0:a]atrim=start=9.620:end=13.220,asetpts=PTS-STARTPTS[ap3];[0:a]atrim=start=13.520:end=14.560,asetpts=PTS-STARTPTS[ap4];[0:a]atrim=start=15.080:end=16.640,asetpts=PTS-STARTPTS[ap5];[vp0][ap0][vp1][ap1][vp2][ap2][vp3][ap3][vp4][ap4][vp5][ap5]concat=n=6:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_013_мы всё равно посмотрим, если ты не против. Ща посмотрим. Ладно, пошли. …_2072-2089с.mp4
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 1929.900 -t 17.620 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=4.100,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=4.468:end=9.160,setpts=PTS-STARTPTS[vp1];[0:v]trim=start=9.820:end=14.640,setpts=PTS-STARTPTS[vp2];[0:v]trim=start=15.100:end=17.620,setpts=PTS-STARTPTS[vp3];[0:a]atrim=start=0.000:end=4.100,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=4.468:end=9.160,asetpts=PTS-STARTPTS[ap1];[0:a]atrim=start=9.820:end=14.640,asetpts=PTS-STARTPTS[ap2];[0:a]atrim=start=15.100:end=17.620,asetpts=PTS-STARTPTS[ap3];[vp0][ap0][vp1][ap1][vp2][ap2][vp3][ap3]concat=n=4:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_014_Коннор, ты что там делаешь Иду, лейтенант. Отстань от меня, отстань. П…_1929-1947с.mp4
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 1961.220 -t 15.820 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=1.320,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=2.280:end=7.560,setpts=PTS-STARTPTS[vp1];[0:v]trim=start=8.200:end=9.320,setpts=PTS-STARTPTS[vp2];[0:v]trim=start=10.820:end=15.820,setpts=PTS-STARTPTS[vp3];[0:a]atrim=start=0.000:end=1.320,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=2.280:end=7.560,asetpts=PTS-STARTPTS[ap1];[0:a]atrim=start=8.200:end=9.320,asetpts=PTS-STARTPTS[ap2];[0:a]atrim=start=10.820:end=15.820,asetpts=PTS-STARTPTS[ap3];[vp0][ap0][vp1][ap1][vp2][ap2][vp3][ap3]concat=n=4:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_015_Такое не видели. Короче, всё понятно, для чего ты была создана. Мы тебя…_1961-1977с.mp4
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 2261.760 -t 18.540 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=6.994,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=9.483:end=12.077,setpts=PTS-STARTPTS[vp1];[0:v]trim=start=12.544:end=18.540,setpts=PTS-STARTPTS[vp2];[0:a]atrim=start=0.000:end=6.994,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=9.483:end=12.077,asetpts=PTS-STARTPTS[ap1];[0:a]atrim=start=12.544:end=18.540,asetpts=PTS-STARTPTS[ap2];[vp0][ap0][vp1][ap1][vp2][ap2]concat=n=3:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_016_Ты повреждена, я тебя реактивировал, всё в порядке. Этот, он мёртвый У…_2261-2280с.mp4
+Render short: ffmpeg -nostdin -hide_banner -loglevel error -ss 2400.720 -t 16.580 -i E:/Render/Detroit Become Human 7.mp4 -filter_complex [0:v]trim=start=0.000:end=5.800,setpts=PTS-STARTPTS[vp0];[0:v]trim=start=9.086:end=13.853,setpts=PTS-STARTPTS[vp1];[0:v]trim=start=14.688:end=16.580,setpts=PTS-STARTPTS[vp2];[0:a]atrim=start=0.000:end=5.800,asetpts=PTS-STARTPTS[ap0];[0:a]atrim=start=9.086:end=13.853,asetpts=PTS-STARTPTS[ap1];[0:a]atrim=start=14.688:end=16.580,asetpts=PTS-STARTPTS[ap2];[vp0][ap0][vp1][ap1][vp2][ap2]concat=n=3:v=1:a=1[vsrc][asrc];[vsrc]fps=60,split=2[src_cam][src_game];[src_cam]crop=768:457:0:0,eq=brightness=0.140:contrast=1.270:saturation=1.030,scale=1080:640:flags=fast_bilinear[cam];[src_game]crop=1584:1440:508:0,eq=brightness=0.040:contrast=1.330:saturation=0.880,scale=1080:1280:flags=fast_bilinear[game];[cam][game]vstack=inputs=2[vout] -map [vout] -map [asrc] -c:v h264_nvenc -preset p3 -tune hq -rc vbr -cq 21 -b:v 0 -bf 0 -pix_fmt yuv420p -movflags +faststart -shortest -c:a aac -b:a 160k -y E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_017_Сеанс в 30 минут стоит 29 долларов 99 центов. Подтвердите покупку. И ка…_2400-2417с.mp4
+
+===========转录任务开始===========
+时间：2026-04-17 22:05:34.489247
+UseProcessedSubtitleCache=OFF: отключаем shortcut и ASR-кэш для транскрибации
+开始转换音频
+转换为音频执行命令: ffmpeg -i E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_001_Самые горячие кибер-девочки_1888-1907с.mp4 -map 0:a -ac 1 -ar 16000 -af aresample=async=1 -y C:\Temp\tmpybfjajym.wav
+开始语音转录
+Faster Whisper 执行命令: faster-whisper-xxl -m large-v2 --print_progress --model_dir E:\Neyro\ShortsCreatorStudio\AppData\models C:\Temp\bk_asr\tmpld8c2z71\audio.wav -l ru -d cuda --compute_type float16 --output_format srt -o source --vad_filter false --one_word 1 --beep_off
+Standalone Faster-Whisper-XXL r245.2 running on: CUDA
+Starting sequential inference to transcribe: C:\Temp\bk_asr\tmpld8c2z71\audio.wav
+94% | 17/18 | 00:06<<00:00 |  2.72 audio seconds/s
+100% | 18/18 | 00:06<<00:00 |  2.75 audio seconds/s
+Transcription speed: 2.77 audio seconds/s
+Subtitles are written to 'C:\Temp\bk_asr\tmpld8c2z71' directory.
+Operation finished in:  0:00:08.467
+Faster Whisper 返回值: 0
+Faster Whisper 识别完成
+字幕文件已保存到: E:\Neyro\VideoCaptioner\work-dir\шорт_001_Самые горячие кибер-девочки_1888-1907с\subtitle\【原始字幕】шорт_001_Самые горячие кибер-девочки_1888-1907с-FasterWhisper ✨-俄语.srt
+
+===========字幕处理任务开始===========
+时间：2026-04-17 22:05:44.343895
+字幕保存到 E:\Neyro\VideoCaptioner\work-dir\шорт_001_Самые горячие кибер-девочки_1888-1907с\subtitle\【样式字幕】шорт_001_Самые горячие кибер-девочки_1888-1907с-FasterWhisper ✨-俄语.ass
+诊断报告保存到 E:\Neyro\ShortsCreatorStudio\work-dir\subtitle_diagnostics_20260417_220544.json
+优化完成
+
+===========视频合成任务开始===========
+时间：2026-04-17 22:05:44.357459
+开始合成视频: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_001_Самые горячие кибер-девочки_1888-1907с.mp4
+使用硬字幕
+检查CUDA是否可用
+CUDA可用
+使用CUDA加速
+添加硬字幕执行命令: ffmpeg -hwaccel cuda -i "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_001_Самые горячие кибер-девочки_1888-1907с.mp4" -acodec copy -vcodec libx264 -preset medium -crf 18 -vf "ass='C\:/Temp/MechaniksLab Creator Studio/temp_subtitle..ass',fps=60" -pix_fmt yuv420p -movflags +faststart -y "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_001_Самые горячие кибер-девочки_1888-1907с.mp4"
+视频总时长: 18.18秒
+视频合成完成
+视频合成完成，保存路径: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_001_Самые горячие кибер-девочки_1888-1907с.mp4
+
+===========转录任务开始===========
+时间：2026-04-17 22:05:55.339084
+UseProcessedSubtitleCache=OFF: отключаем shortcut и ASR-кэш для транскрибации
+开始转换音频
+转换为音频执行命令: ffmpeg -i E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_002_Ты можешь прочитать память андроида_2212-2229с.mp4 -map 0:a -ac 1 -ar 16000 -af aresample=async=1 -y C:\Temp\tmpmwogvn4p.wav
+开始语音转录
+Faster Whisper 执行命令: faster-whisper-xxl -m large-v2 --print_progress --model_dir E:\Neyro\ShortsCreatorStudio\AppData\models C:\Temp\bk_asr\tmp8hhhl66p\audio.wav -l ru -d cuda --compute_type float16 --output_format srt -o source --vad_filter false --one_word 1 --beep_off
+Standalone Faster-Whisper-XXL r245.2 running on: CUDA
+Starting sequential inference to transcribe: C:\Temp\bk_asr\tmp8hhhl66p\audio.wav
+94% | 15/16 | 00:06<<00:00 |  2.40 audio seconds/s
+100% | 16/16 | 00:06<<00:00 |  2.44 audio seconds/s
+Transcription speed: 2.4 audio seconds/s
+Subtitles are written to 'C:\Temp\bk_asr\tmp8hhhl66p' directory.
+Operation finished in:  0:00:08.386
+Faster Whisper 返回值: 0
+Faster Whisper 识别完成
+字幕文件已保存到: E:\Neyro\VideoCaptioner\work-dir\шорт_002_Ты можешь прочитать память андроида_2212-2229с\subtitle\【原始字幕】шорт_002_Ты можешь прочитать память андроида_2212-2229с-FasterWhisper ✨-俄语.srt
+
+===========字幕处理任务开始===========
+时间：2026-04-17 22:06:05.113003
+字幕保存到 E:\Neyro\VideoCaptioner\work-dir\шорт_002_Ты можешь прочитать память андроида_2212-2229с\subtitle\【样式字幕】шорт_002_Ты можешь прочитать память андроида_2212-2229с-Faster_e9362715.ass
+诊断报告保存到 E:\Neyro\ShortsCreatorStudio\work-dir\subtitle_diagnostics_20260417_220605.json
+优化完成
+
+===========视频合成任务开始===========
+时间：2026-04-17 22:06:05.123902
+开始合成视频: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_002_Ты можешь прочитать память андроида_2212-2229с.mp4
+使用硬字幕
+检查CUDA是否可用
+CUDA可用
+使用CUDA加速
+添加硬字幕执行命令: ffmpeg -hwaccel cuda -i "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_002_Ты можешь прочитать память андроида_2212-2229с.mp4" -acodec copy -vcodec libx264 -preset medium -crf 18 -vf "ass='C\:/Temp/MechaniksLab Creator Studio/temp_subtitle..ass',fps=60" -pix_fmt yuv420p -movflags +faststart -y "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_002_Ты можешь прочитать память андроида_2212-2229с.mp4"
+视频总时长: 15.78秒
+视频合成完成
+视频合成完成，保存路径: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_002_Ты можешь прочитать память андроида_2212-2229с.mp4
+
+===========转录任务开始===========
+时间：2026-04-17 22:06:13.868953
+UseProcessedSubtitleCache=OFF: отключаем shortcut и ASR-кэш для транскрибации
+开始转换音频
+转换为音频执行命令: ffmpeg -i E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_003_Че у меня с одеждой_1894-1914с.mp4 -map 0:a -ac 1 -ar 16000 -af aresample=async=1 -y C:\Temp\tmpsze2u6m9.wav
+开始语音转录
+Faster Whisper 执行命令: faster-whisper-xxl -m large-v2 --print_progress --model_dir E:\Neyro\ShortsCreatorStudio\AppData\models C:\Temp\bk_asr\tmpvohfzwic\audio.wav -l ru -d cuda --compute_type float16 --output_format srt -o source --vad_filter false --one_word 1 --beep_off
+Standalone Faster-Whisper-XXL r245.2 running on: CUDA
+Starting sequential inference to transcribe: C:\Temp\bk_asr\tmpvohfzwic\audio.wav
+93% | 14/15 | 00:06<<00:00 |  2.28 audio seconds/s
+100% | 15/15 | 00:06<<00:00 |  2.33 audio seconds/s
+Transcription speed: 2.36 audio seconds/s
+Subtitles are written to 'C:\Temp\bk_asr\tmpvohfzwic' directory.
+Operation finished in:  0:00:08.221
+Faster Whisper 返回值: 0
+Faster Whisper 识别完成
+字幕文件已保存到: E:\Neyro\VideoCaptioner\work-dir\шорт_003_Че у меня с одеждой_1894-1914с\subtitle\【原始字幕】шорт_003_Че у меня с одеждой_1894-1914с-FasterWhisper ✨-俄语.srt
+
+===========字幕处理任务开始===========
+时间：2026-04-17 22:06:23.451935
+字幕保存到 E:\Neyro\VideoCaptioner\work-dir\шорт_003_Че у меня с одеждой_1894-1914с\subtitle\【样式字幕】шорт_003_Че у меня с одеждой_1894-1914с-FasterWhisper ✨-俄语.ass
+诊断报告保存到 E:\Neyro\ShortsCreatorStudio\work-dir\subtitle_diagnostics_20260417_220623.json
+优化完成
+
+===========视频合成任务开始===========
+时间：2026-04-17 22:06:23.459090
+开始合成视频: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_003_Че у меня с одеждой_1894-1914с.mp4
+使用硬字幕
+检查CUDA是否可用
+CUDA可用
+使用CUDA加速
+添加硬字幕执行命令: ffmpeg -hwaccel cuda -i "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_003_Че у меня с одеждой_1894-1914с.mp4" -acodec copy -vcodec libx264 -preset medium -crf 18 -vf "ass='C\:/Temp/MechaniksLab Creator Studio/temp_subtitle..ass',fps=60" -pix_fmt yuv420p -movflags +faststart -y "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_003_Че у меня с одеждой_1894-1914с.mp4"
+视频总时长: 15.22秒
+视频合成完成
+视频合成完成，保存路径: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_003_Че у меня с одеждой_1894-1914с.mp4
+
+===========转录任务开始===========
+时间：2026-04-17 22:06:32.382999
+UseProcessedSubtitleCache=OFF: отключаем shortcut и ASR-кэш для транскрибации
+开始转换音频
+转换为音频执行命令: ffmpeg -i E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_004_и снова. Я просила перестать, он не слушал. Вы были одни в комнате Бол…_2282-2299с.mp4 -map 0:a -ac 1 -ar 16000 -af aresample=async=1 -y C:\Temp\tmp6k1w9tm8.wav
+开始语音转录
+Faster Whisper 执行命令: faster-whisper-xxl -m large-v2 --print_progress --model_dir E:\Neyro\ShortsCreatorStudio\AppData\models C:\Temp\bk_asr\tmpdze6t2mc\audio.wav -l ru -d cuda --compute_type float16 --output_format srt -o source --vad_filter false --one_word 1 --beep_off
+Standalone Faster-Whisper-XXL r245.2 running on: CUDA
+Starting sequential inference to transcribe: C:\Temp\bk_asr\tmpdze6t2mc\audio.wav
+93% | 14/15 | 00:06<<00:00 |  2.26 audio seconds/s
+100% | 15/15 | 00:06<<00:00 |  2.31 audio seconds/s
+Transcription speed: 2.28 audio seconds/s
+Subtitles are written to 'C:\Temp\bk_asr\tmpdze6t2mc' directory.
+Operation finished in:  0:00:08.325
+Faster Whisper 返回值: 0
+Faster Whisper 识别完成
+字幕文件已保存到: E:\Neyro\VideoCaptioner\work-dir\шорт_004_и снова. Я просила перестать, он не слушал. Вы были о_83716411\subtitle\【原始字幕】шорт_004_и снова. Я просила перестать, он не слушал. Вы были о_83716411-FasterWhisper ✨-俄语.srt
+
+===========字幕处理任务开始===========
+时间：2026-04-17 22:06:42.072337
+字幕保存到 E:\Neyro\VideoCaptioner\work-dir\шорт_004_и снова. Я просила перестать, он не слушал. Вы были о_83716411\subtitle\【样式字幕】шорт_004_и снова. Я просила перестать, он не слушал. Вы были о_aaa02a49.ass
+诊断报告保存到 E:\Neyro\ShortsCreatorStudio\work-dir\subtitle_diagnostics_20260417_220642.json
+优化完成
+
+===========视频合成任务开始===========
+时间：2026-04-17 22:06:42.078588
+开始合成视频: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_004_и снова. Я просила перестать, он не слушал. Вы были одни в комнате Бол…_2282-2299с.mp4
+使用硬字幕
+检查CUDA是否可用
+CUDA可用
+使用CUDA加速
+添加硬字幕执行命令: ffmpeg -hwaccel cuda -i "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_004_и снова. Я просила перестать, он не слушал. Вы были одни в комнате Бол…_2282-2299с.mp4" -acodec copy -vcodec libx264 -preset medium -crf 18 -vf "ass='C\:/Temp/MechaniksLab Creator Studio/temp_subtitle..ass',fps=60" -pix_fmt yuv420p -movflags +faststart -y "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_004_и снова. Я просила перестать, он не слушал. Вы были одни в комнате Бол…_2282-2299с.mp4"
+视频总时长: 14.78秒
+视频合成完成
+视频合成完成，保存路径: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_004_и снова. Я просила перестать, он не слушал. Вы были одни в комнате Бол…_2282-2299с.mp4
+
+===========转录任务开始===========
+时间：2026-04-17 22:06:50.106146
+UseProcessedSubtitleCache=OFF: отключаем shortcut и ASR-кэш для транскрибации
+开始转换音频
+转换为音频执行命令: ffmpeg -i E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_005_в таком виде сложно уйти незамеченной. Она может быть ещё здесь. Давай …_2316-2333с.mp4 -map 0:a -ac 1 -ar 16000 -af aresample=async=1 -y C:\Temp\tmpdmgfvdim.wav
+开始语音转录
+Faster Whisper 执行命令: faster-whisper-xxl -m large-v2 --print_progress --model_dir E:\Neyro\ShortsCreatorStudio\AppData\models C:\Temp\bk_asr\tmpa5utr9rt\audio.wav -l ru -d cuda --compute_type float16 --output_format srt -o source --vad_filter false --one_word 1 --beep_off
+Standalone Faster-Whisper-XXL r245.2 running on: CUDA
+Starting sequential inference to transcribe: C:\Temp\bk_asr\tmpa5utr9rt\audio.wav
+100% | 16/16 | 00:06<<00:00 |  2.38 audio seconds/s
+Transcription speed: 2.33 audio seconds/s
+Subtitles are written to 'C:\Temp\bk_asr\tmpa5utr9rt' directory.
+Operation finished in:  0:00:08.792
+Faster Whisper 返回值: 0
+Faster Whisper 识别完成
+字幕文件已保存到: E:\Neyro\VideoCaptioner\work-dir\шорт_005_в таком виде сложно уйти незамеченной. Она может быть_01932838\subtitle\【原始字幕】шорт_005_в таком виде сложно уйти незамеченной. Она может быть_01932838-FasterWhisper ✨-俄语.srt
+
+===========字幕处理任务开始===========
+时间：2026-04-17 22:07:00.267144
+字幕保存到 E:\Neyro\VideoCaptioner\work-dir\шорт_005_в таком виде сложно уйти незамеченной. Она может быть_01932838\subtitle\【样式字幕】шорт_005_в таком виде сложно уйти незамеченной. Она может быть_fe6d6115.ass
+诊断报告保存到 E:\Neyro\ShortsCreatorStudio\work-dir\subtitle_diagnostics_20260417_220700.json
+优化完成
+
+===========视频合成任务开始===========
+时间：2026-04-17 22:07:00.277142
+开始合成视频: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_005_в таком виде сложно уйти незамеченной. Она может быть ещё здесь. Давай …_2316-2333с.mp4
+使用硬字幕
+检查CUDA是否可用
+CUDA可用
+使用CUDA加速
+添加硬字幕执行命令: ffmpeg -hwaccel cuda -i "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_005_в таком виде сложно уйти незамеченной. Она может быть ещё здесь. Давай …_2316-2333с.mp4" -acodec copy -vcodec libx264 -preset medium -crf 18 -vf "ass='C\:/Temp/MechaniksLab Creator Studio/temp_subtitle..ass',fps=60" -pix_fmt yuv420p -movflags +faststart -y "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_005_в таком виде сложно уйти незамеченной. Она может быть ещё здесь. Давай …_2316-2333с.mp4"
+视频总时长: 16.42秒
+视频合成完成
+视频合成完成，保存路径: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_005_в таком виде сложно уйти незамеченной. Она может быть ещё здесь. Давай …_2316-2333с.mp4
+
+===========转录任务开始===========
+时间：2026-04-17 22:07:08.728704
+UseProcessedSubtitleCache=OFF: отключаем shortcut и ASR-кэш для транскрибации
+开始转换音频
+转换为音频执行命令: ffmpeg -i E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_006_Давай, поехали. Попытался. Попробую. Вчера от кнопки нажимать, так треб…_2218-2240с.mp4 -map 0:a -ac 1 -ar 16000 -af aresample=async=1 -y C:\Temp\tmpvqipiepl.wav
+开始语音转录
+Faster Whisper 执行命令: faster-whisper-xxl -m large-v2 --print_progress --model_dir E:\Neyro\ShortsCreatorStudio\AppData\models C:\Temp\bk_asr\tmpiurwan72\audio.wav -l ru -d cuda --compute_type float16 --output_format srt -o source --vad_filter false --one_word 1 --beep_off
+Standalone Faster-Whisper-XXL r245.2 running on: CUDA
+Starting sequential inference to transcribe: C:\Temp\bk_asr\tmpiurwan72\audio.wav
+95% | 19/20 | 00:06<<00:00 |  2.78 audio seconds/s
+100% | 20/20 | 00:07<<00:00 |  2.80 audio seconds/s
+Transcription speed: 2.73 audio seconds/s
+Subtitles are written to 'C:\Temp\bk_asr\tmpiurwan72' directory.
+Operation finished in:  0:00:08.981
+Faster Whisper 返回值: 0
+Faster Whisper 识别完成
+字幕文件已保存到: E:\Neyro\VideoCaptioner\work-dir\шорт_006_Давай, поехали. Попытался. Попробую. Вчера от кнопки_2f728fc1\subtitle\【原始字幕】шорт_006_Давай, поехали. Попытался. Попробую. Вчера от кнопки_2f728fc1-FasterWhisper ✨-俄语.srt
+
+===========字幕处理任务开始===========
+时间：2026-04-17 22:07:19.086676
+字幕保存到 E:\Neyro\VideoCaptioner\work-dir\шорт_006_Давай, поехали. Попытался. Попробую. Вчера от кнопки_2f728fc1\subtitle\【样式字幕】шорт_006_Давай, поехали. Попытался. Попробую. Вчера от кнопки__311167d5.ass
+诊断报告保存到 E:\Neyro\ShortsCreatorStudio\work-dir\subtitle_diagnostics_20260417_220719.json
+优化完成
+
+===========视频合成任务开始===========
+时间：2026-04-17 22:07:19.097675
+开始合成视频: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_006_Давай, поехали. Попытался. Попробую. Вчера от кнопки нажимать, так треб…_2218-2240с.mp4
+使用硬字幕
+检查CUDA是否可用
+CUDA可用
+使用CUDA加速
+添加硬字幕执行命令: ffmpeg -hwaccel cuda -i "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_006_Давай, поехали. Попытался. Попробую. Вчера от кнопки нажимать, так треб…_2218-2240с.mp4" -acodec copy -vcodec libx264 -preset medium -crf 18 -vf "ass='C\:/Temp/MechaniksLab Creator Studio/temp_subtitle..ass',fps=60" -pix_fmt yuv420p -movflags +faststart -y "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_006_Давай, поехали. Попытался. Попробую. Вчера от кнопки нажимать, так треб…_2218-2240с.mp4"
+视频总时长: 19.53秒
+视频合成完成
+视频合成完成，保存路径: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_006_Давай, поехали. Попытался. Попробую. Вчера от кнопки нажимать, так треб…_2218-2240с.mp4
+
+===========转录任务开始===========
+时间：2026-04-17 22:07:29.495444
+UseProcessedSubtitleCache=OFF: отключаем shortcut и ASR-кэш для транскрибации
+开始转换音频
+转换为音频执行命令: ffmpeg -i E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_007_Общественное мнение тогда там, да, вот это опять повменьшится, будут на…_1821-1842с.mp4 -map 0:a -ac 1 -ar 16000 -af aresample=async=1 -y C:\Temp\tmpbbwnpn29.wav
+开始语音转录
+Faster Whisper 执行命令: faster-whisper-xxl -m large-v2 --print_progress --model_dir E:\Neyro\ShortsCreatorStudio\AppData\models C:\Temp\bk_asr\tmpt1csm2lb\audio.wav -l ru -d cuda --compute_type float16 --output_format srt -o source --vad_filter false --one_word 1 --beep_off
+Standalone Faster-Whisper-XXL r245.2 running on: CUDA
+Starting sequential inference to transcribe: C:\Temp\bk_asr\tmpt1csm2lb\audio.wav
+100% | 18/18 | 00:06<<00:00 |  2.76 audio seconds/s
+Transcription speed: 2.7 audio seconds/s
+Subtitles are written to 'C:\Temp\bk_asr\tmpt1csm2lb' directory.
+Operation finished in:  0:00:08.568
+Faster Whisper 返回值: 0
+Faster Whisper 识别完成
+字幕文件已保存到: E:\Neyro\VideoCaptioner\work-dir\шорт_007_Общественное мнение тогда там, да, вот это опять повм_f664f0a4\subtitle\【原始字幕】шорт_007_Общественное мнение тогда там, да, вот это опять повм_f664f0a4-FasterWhisper ✨-俄语.srt
+
+===========字幕处理任务开始===========
+时间：2026-04-17 22:07:39.403223
+字幕保存到 E:\Neyro\VideoCaptioner\work-dir\шорт_007_Общественное мнение тогда там, да, вот это опять повм_f664f0a4\subtitle\【样式字幕】шорт_007_Общественное мнение тогда там, да, вот это опять повм_842b6dfd.ass
+诊断报告保存到 E:\Neyro\ShortsCreatorStudio\work-dir\subtitle_diagnostics_20260417_220739.json
+优化完成
+
+===========视频合成任务开始===========
+时间：2026-04-17 22:07:39.415222
+开始合成视频: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_007_Общественное мнение тогда там, да, вот это опять повменьшится, будут на…_1821-1842с.mp4
+使用硬字幕
+检查CUDA是否可用
+CUDA可用
+使用CUDA加速
+添加硬字幕执行命令: ffmpeg -hwaccel cuda -i "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_007_Общественное мнение тогда там, да, вот это опять повменьшится, будут на…_1821-1842с.mp4" -acodec copy -vcodec libx264 -preset medium -crf 18 -vf "ass='C\:/Temp/MechaniksLab Creator Studio/temp_subtitle..ass',fps=60" -pix_fmt yuv420p -movflags +faststart -y "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_007_Общественное мнение тогда там, да, вот это опять повменьшится, будут на…_1821-1842с.mp4"
+视频总时长: 18.42秒
+视频合成完成
+视频合成完成，保存路径: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_007_Общественное мнение тогда там, да, вот это опять повменьшится, будут на…_1821-1842с.mp4
+
+===========转录任务开始===========
+时间：2026-04-17 22:07:45.609541
+UseProcessedSubtitleCache=OFF: отключаем shortcut и ASR-кэш для транскрибации
+开始转换音频
+转换为音频执行命令: ffmpeg -i E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_008_андроидов ты вычислишь Да, она в капсуле стоит. Девиантов сложно вычис…_2323-2342с.mp4 -map 0:a -ac 1 -ar 16000 -af aresample=async=1 -y C:\Temp\tmp_bmdzf52.wav
+开始语音转录
+Faster Whisper 执行命令: faster-whisper-xxl -m large-v2 --print_progress --model_dir E:\Neyro\ShortsCreatorStudio\AppData\models C:\Temp\bk_asr\tmpiag8n6j_\audio.wav -l ru -d cuda --compute_type float16 --output_format srt -o source --vad_filter false --one_word 1 --beep_off
+Standalone Faster-Whisper-XXL r245.2 running on: CUDA
+Starting sequential inference to transcribe: C:\Temp\bk_asr\tmpiag8n6j_\audio.wav
+100% | 16/16 | 00:05<<00:00 |  2.68 audio seconds/s
+Transcription speed: 2.6 audio seconds/s
+Subtitles are written to 'C:\Temp\bk_asr\tmpiag8n6j_' directory.
+Operation finished in:  0:00:08.049
+Faster Whisper 返回值: 0
+Faster Whisper 识别完成
+字幕文件已保存到: E:\Neyro\VideoCaptioner\work-dir\шорт_008_андроидов ты вычислишь Да, она в капсуле стоит. Девиа_b21ee208\subtitle\【原始字幕】шорт_008_андроидов ты вычислишь Да, она в капсуле стоит. Девиа_b21ee208-FasterWhisper ✨-俄语.srt
+
+===========字幕处理任务开始===========
+时间：2026-04-17 22:07:55.081747
+字幕保存到 E:\Neyro\VideoCaptioner\work-dir\шорт_008_андроидов ты вычислишь Да, она в капсуле стоит. Девиа_b21ee208\subtitle\【样式字幕】шорт_008_андроидов ты вычислишь Да, она в капсуле стоит. Девиа_4d818e02.ass
+诊断报告保存到 E:\Neyro\ShortsCreatorStudio\work-dir\subtitle_diagnostics_20260417_220755.json
+优化完成
+
+===========视频合成任务开始===========
+时间：2026-04-17 22:07:55.091747
+开始合成视频: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_008_андроидов ты вычислишь Да, она в капсуле стоит. Девиантов сложно вычис…_2323-2342с.mp4
+使用硬字幕
+检查CUDA是否可用
+CUDA可用
+使用CUDA加速
+添加硬字幕执行命令: ffmpeg -hwaccel cuda -i "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_008_андроидов ты вычислишь Да, она в капсуле стоит. Девиантов сложно вычис…_2323-2342с.mp4" -acodec copy -vcodec libx264 -preset medium -crf 18 -vf "ass='C\:/Temp/MechaniksLab Creator Studio/temp_subtitle..ass',fps=60" -pix_fmt yuv420p -movflags +faststart -y "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_008_андроидов ты вычислишь Да, она в капсуле стоит. Девиантов сложно вычис…_2323-2342с.mp4"
+视频总时长: 16.26秒
+视频合成完成
+视频合成完成，保存路径: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_008_андроидов ты вычислишь Да, она в капсуле стоит. Девиантов сложно вычис…_2323-2342с.mp4
+
+===========转录任务开始===========
+时间：2026-04-17 22:08:03.234472
+UseProcessedSubtitleCache=OFF: отключаем shortcut и ASR-кэш для транскрибации
+开始转换音频
+转换为音频执行命令: ffmpeg -i E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_009_Как всё случилось Он начал бить меня. Снова и снова. Я просила переста…_2275-2294с.mp4 -map 0:a -ac 1 -ar 16000 -af aresample=async=1 -y C:\Temp\tmpuhec5502.wav
+开始语音转录
+Faster Whisper 执行命令: faster-whisper-xxl -m large-v2 --print_progress --model_dir E:\Neyro\ShortsCreatorStudio\AppData\models C:\Temp\bk_asr\tmphmg73fhb\audio.wav -l ru -d cuda --compute_type float16 --output_format srt -o source --vad_filter false --one_word 1 --beep_off
+Standalone Faster-Whisper-XXL r245.2 running on: CUDA
+Starting sequential inference to transcribe: C:\Temp\bk_asr\tmphmg73fhb\audio.wav
+100% | 15/15 | 00:05<<00:00 |  2.66 audio seconds/s
+Transcription speed: 2.51 audio seconds/s
+Subtitles are written to 'C:\Temp\bk_asr\tmphmg73fhb' directory.
+Operation finished in:  0:00:07.682
+Faster Whisper 返回值: 0
+Faster Whisper 识别完成
+字幕文件已保存到: E:\Neyro\VideoCaptioner\work-dir\шорт_009_Как всё случилось Он начал бить меня. Снова и снова_c3cde5cc\subtitle\【原始字幕】шорт_009_Как всё случилось Он начал бить меня. Снова и снова_c3cde5cc-FasterWhisper ✨-俄语.srt
+
+===========字幕处理任务开始===========
+时间：2026-04-17 22:08:12.312801
+字幕保存到 E:\Neyro\VideoCaptioner\work-dir\шорт_009_Как всё случилось Он начал бить меня. Снова и снова_c3cde5cc\subtitle\【样式字幕】шорт_009_Как всё случилось Он начал бить меня. Снова и снова_c_8880e9ee.ass
+诊断报告保存到 E:\Neyro\ShortsCreatorStudio\work-dir\subtitle_diagnostics_20260417_220812.json
+优化完成
+
+===========视频合成任务开始===========
+时间：2026-04-17 22:08:12.321802
+开始合成视频: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_009_Как всё случилось Он начал бить меня. Снова и снова. Я просила переста…_2275-2294с.mp4
+使用硬字幕
+检查CUDA是否可用
+CUDA可用
+使用CUDA加速
+添加硬字幕执行命令: ffmpeg -hwaccel cuda -i "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_009_Как всё случилось Он начал бить меня. Снова и снова. Я просила переста…_2275-2294с.mp4" -acodec copy -vcodec libx264 -preset medium -crf 18 -vf "ass='C\:/Temp/MechaniksLab Creator Studio/temp_subtitle..ass',fps=60" -pix_fmt yuv420p -movflags +faststart -y "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_009_Как всё случилось Он начал бить меня. Снова и снова. Я просила переста…_2275-2294с.mp4"
+视频总时长: 14.95秒
+视频合成完成
+视频合成完成，保存路径: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_009_Как всё случилось Он начал бить меня. Снова и снова. Я просила переста…_2275-2294с.mp4
+
+===========转录任务开始===========
+时间：2026-04-17 22:08:20.056518
+UseProcessedSubtitleCache=OFF: отключаем shortcut и ASR-кэш для транскрибации
+开始转换音频
+转换为音频执行命令: ffmpeg -i E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_010_Эй! Конор, мерзость какая! Да мне надо изучить всё. Мне бы тут не сплев…_2111-2132с.mp4 -map 0:a -ac 1 -ar 16000 -af aresample=async=1 -y C:\Temp\tmpcwvzxuqi.wav
+开始语音转录
+Faster Whisper 执行命令: faster-whisper-xxl -m large-v2 --print_progress --model_dir E:\Neyro\ShortsCreatorStudio\AppData\models C:\Temp\bk_asr\tmphhtxoz4v\audio.wav -l ru -d cuda --compute_type float16 --output_format srt -o source --vad_filter false --one_word 1 --beep_off
+Standalone Faster-Whisper-XXL r245.2 running on: CUDA
+Starting sequential inference to transcribe: C:\Temp\bk_asr\tmphhtxoz4v\audio.wav
+94% | 16/17 | 00:04<<00:00 |  3.50 audio seconds/s
+100% | 17/17 | 00:04<<00:00 |  3.48 audio seconds/s
+Transcription speed: 3.41 audio seconds/s
+Subtitles are written to 'C:\Temp\bk_asr\tmphhtxoz4v' directory.
+Operation finished in:  0:00:06.630
+Faster Whisper 返回值: 0
+Faster Whisper 识别完成
+字幕文件已保存到: E:\Neyro\VideoCaptioner\work-dir\шорт_010_Эй! Конор, мерзость какая! Да мне надо изучить всё. М_10a1d35d\subtitle\【原始字幕】шорт_010_Эй! Конор, мерзость какая! Да мне надо изучить всё. М_10a1d35d-FasterWhisper ✨-俄语.srt
+
+===========字幕处理任务开始===========
+时间：2026-04-17 22:08:28.032868
+字幕保存到 E:\Neyro\VideoCaptioner\work-dir\шорт_010_Эй! Конор, мерзость какая! Да мне надо изучить всё. М_10a1d35d\subtitle\【样式字幕】шорт_010_Эй! Конор, мерзость какая! Да мне надо изучить всё. М_5168d784.ass
+诊断报告保存到 E:\Neyro\ShortsCreatorStudio\work-dir\subtitle_diagnostics_20260417_220828.json
+优化完成
+
+===========视频合成任务开始===========
+时间：2026-04-17 22:08:28.041869
+开始合成视频: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_010_Эй! Конор, мерзость какая! Да мне надо изучить всё. Мне бы тут не сплев…_2111-2132с.mp4
+使用硬字幕
+检查CUDA是否可用
+CUDA可用
+使用CUDA加速
+添加硬字幕执行命令: ffmpeg -hwaccel cuda -i "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_010_Эй! Конор, мерзость какая! Да мне надо изучить всё. Мне бы тут не сплев…_2111-2132с.mp4" -acodec copy -vcodec libx264 -preset medium -crf 18 -vf "ass='C\:/Temp/MechaniksLab Creator Studio/temp_subtitle..ass',fps=60" -pix_fmt yuv420p -movflags +faststart -y "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_010_Эй! Конор, мерзость какая! Да мне надо изучить всё. Мне бы тут не сплев…_2111-2132с.mp4"
+视频总时长: 16.68秒
+视频合成完成
+视频合成完成，保存路径: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_010_Эй! Конор, мерзость какая! Да мне надо изучить всё. Мне бы тут не сплев…_2111-2132с.mp4
+
+===========转录任务开始===========
+时间：2026-04-17 22:08:36.576641
+UseProcessedSubtitleCache=OFF: отключаем shortcut и ASR-кэш для транскрибации
+开始转换音频
+转换为音频执行命令: ffmpeg -i E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_011_Это был не сердечный приступ. Его задушили. Да, я видел синяки на шее. …_2196-2217с.mp4 -map 0:a -ac 1 -ar 16000 -af aresample=async=1 -y C:\Temp\tmpno493hxr.wav
+开始语音转录
+Faster Whisper 执行命令: faster-whisper-xxl -m large-v2 --print_progress --model_dir E:\Neyro\ShortsCreatorStudio\AppData\models C:\Temp\bk_asr\tmp_uw3nivn\audio.wav -l ru -d cuda --compute_type float16 --output_format srt -o source --vad_filter false --one_word 1 --beep_off
+Standalone Faster-Whisper-XXL r245.2 running on: CUDA
+Starting sequential inference to transcribe: C:\Temp\bk_asr\tmp_uw3nivn\audio.wav
+100% | 18/18 | 00:07<<00:00 |  2.51 audio seconds/s
+Transcription speed: 2.47 audio seconds/s
+Subtitles are written to 'C:\Temp\bk_asr\tmp_uw3nivn' directory.
+Operation finished in:  0:00:09.297
+Faster Whisper 返回值: 0
+Faster Whisper 识别完成
+字幕文件已保存到: E:\Neyro\VideoCaptioner\work-dir\шорт_011_Это был не сердечный приступ. Его задушили. Да, я вид_04725c5a\subtitle\【原始字幕】шорт_011_Это был не сердечный приступ. Его задушили. Да, я вид_04725c5a-FasterWhisper ✨-俄语.srt
+
+===========字幕处理任务开始===========
+时间：2026-04-17 22:08:47.217480
+字幕保存到 E:\Neyro\VideoCaptioner\work-dir\шорт_011_Это был не сердечный приступ. Его задушили. Да, я вид_04725c5a\subtitle\【样式字幕】шорт_011_Это был не сердечный приступ. Его задушили. Да, я вид_727a3ef3.ass
+诊断报告保存到 E:\Neyro\ShortsCreatorStudio\work-dir\subtitle_diagnostics_20260417_220847.json
+优化完成
+
+===========视频合成任务开始===========
+时间：2026-04-17 22:08:47.227480
+开始合成视频: E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_011_Это был не сердечный приступ. Его задушили. Да, я видел синяки на шее. …_2196-2217с.mp4
+使用硬字幕
+检查CUDA是否可用
+CUDA可用
+使用CUDA加速
+添加硬字幕执行命令: ffmpeg -hwaccel cuda -i "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\шорт_011_Это был не сердечный приступ. Его задушили. Да, я видел синяки на шее. …_2196-2217с.mp4" -acodec copy -vcodec libx264 -preset medium -crf 18 -vf "ass='C\:/Temp/MechaniksLab Creator Studio/temp_subtitle..ass',fps=60" -pix_fmt yuv420p -movflags +faststart -y "E:\Neyro\ShortsCreatorStudio\work-dir\shorts\shorts_Detroit Become Human 7_20260417_220427\【卡卡】шорт_011_Это был не сердечный приступ. Его задушили. Да, я видел синяки на шее. …_2196-2217с.mp4"
+视频总时长: 18.47秒
+Latest version info: v1.3.3
+转换为音频执行命令: ffmpeg -i C:\Temp\tmpkwh2_2dt.mp4 -map 0:a -ac 1 -ar 16000 -af aresample=async=1 -y C:\Temp\tmp5v_maejn.wav
+Faster Whisper 执行命令: faster-whisper-xxl -m large-v2 --print_progress --model_dir E:\Neyro\ShortsCreatorStudio\AppData\models C:\Temp\bk_asr\tmpngp8079z\audio.wav -l ru -d cuda --compute_type float16 --output_format srt -o source --vad_filter false --one_word 1 --beep_off
+Standalone Faster-Whisper-XXL r245.2 running on: CUDA
+Starting sequential inference to transcribe: C:\Temp\bk_asr\tmpngp8079z\audio.wav
+4% |  27/670 | 00:05<<02:07 |  5.05 audio seconds/s
+9% |  58/670 | 00:11<<01:58 |  5.18 audio seconds/s
+13% |  86/670 | 00:18<<02:04 |  4.70 audio seconds/s
+17% | 112/670 | 00:27<<02:15 |  4.12 audio seconds/s
+21% | 139/670 | 00:35<<02:16 |  3.88 audio seconds/s
+25% | 168/670 | 00:39<<01:57 |  4.28 audio seconds/s
+30% | 198/670 | 00:45<<01:47 |  4.40 audio seconds/s
+34% | 229/670 | 00:51<<01:39 |  4.44 audio seconds/s
+38% | 256/670 | 00:55<<01:29 |  4.63 audio seconds/s
+42% | 281/670 | 00:57<<01:19 |  4.88 audio seconds/s
+46% | 306/670 | 01:02<<01:13 |  4.92 audio seconds/s
+50% | 332/670 | 01:05<<01:07 |  5.04 audio seconds/s
+54% | 362/670 | 01:08<<00:58 |  5.26 audio seconds/s
+58% | 389/670 | 01:13<<00:53 |  5.29 audio seconds/s
+62% | 417/670 | 01:21<<00:49 |  5.15 audio seconds/s
+67% | 447/670 | 01:28<<00:43 |  5.07 audio seconds/s
+70% | 467/670 | 01:33<<00:40 |  5.00 audio seconds/s
+76% | 507/670 | 02:12<<00:42 |  3.82 audio seconds/s
+80% | 534/670 | 02:19<<00:35 |  3.84 audio seconds/s
+83% | 554/670 | 02:25<<00:30 |  3.80 audio seconds/s
+87% | 581/670 | 02:33<<00:23 |  3.78 audio seconds/s
+90% | 604/670 | 02:40<<00:17 |  3.76 audio seconds/s
+95% | 634/670 | 02:47<<00:09 |  3.79 audio seconds/s
+Latest version info: v1.3.3
+Latest version info: v1.3.3
+转换为音频执行命令: ffmpeg -i C:\Temp\tmpn_p6510h.mp4 -map 0:a -ac 1 -ar 16000 -af aresample=async=1 -y C:\Temp\tmp25b0wb_j.wav
+Faster Whisper 执行命令: faster-whisper-xxl -m large-v2 --print_progress --model_dir E:\Neyro\ShortsCreatorStudio\AppData\models C:\Temp\bk_asr\tmp4aq0v_j3\audio.wav -l ru -d cuda --compute_type float16 --output_format srt -o source --vad_filter false --one_word 1 --beep_off
+Standalone Faster-Whisper-XXL r245.2 running on: CUDA
+Starting sequential inference to transcribe: C:\Temp\bk_asr\tmp4aq0v_j3\audio.wav
+4% |  21/559 | 00:02<<01:03 |  8.49 audio seconds/s
+10% |  54/559 | 00:07<<01:11 |  7.08 audio seconds/s
+15% |  84/559 | 00:12<<01:09 |  6.79 audio seconds/s
+20% | 113/559 | 00:16<<01:05 |  6.80 audio seconds/s
+25% | 139/559 | 00:23<<01:10 |  5.94 audio seconds/s
+30% | 167/559 | 00:28<<01:07 |  5.79 audio seconds/s
+33% | 187/559 | 00:32<<01:04 |  5.75 audio seconds/s
+38% | 211/559 | 00:38<<01:02 |  5.54 audio seconds/s
+43% | 241/559 | 00:43<<00:56 |  5.59 audio seconds/s
+48% | 267/559 | 00:47<<00:51 |  5.66 audio seconds/s
+53% | 296/559 | 00:50<<00:45 |  5.84 audio seconds/s
+58% | 327/559 | 00:56<<00:40 |  5.77 audio seconds/s
+64% | 356/559 | 01:04<<00:37 |  5.49 audio seconds/s
+69% | 386/559 | 01:11<<00:31 |  5.42 audio seconds/s
+74% | 413/559 | 01:14<<00:26 |  5.53 audio seconds/s
+79% | 442/559 | 01:21<<00:21 |  5.44 audio seconds/s
