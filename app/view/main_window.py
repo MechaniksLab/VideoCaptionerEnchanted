@@ -302,10 +302,21 @@ class MainWindow(FluentWindow):
         # os._exit(0)
 
     def stop(self):
-        # 找到 FFmpeg 进程并关闭
+        # Закрываем только медиа-процессы, не трогаем updater/restart скрипты
         process = psutil.Process(os.getpid())
+        kill_names = {
+            "ffmpeg.exe",
+            "ffprobe.exe",
+            "faster-whisper-xxl.exe",
+            "faster-whisper-xxl-cpu.exe",
+        }
         for child in process.children(recursive=True):
-            child.kill()
+            try:
+                name = str(child.name() or "").lower()
+                if name in kill_names:
+                    child.kill()
+            except Exception:
+                pass
 
 
 class RepoUpdateCheckThread(QThread):
