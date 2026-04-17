@@ -748,6 +748,10 @@ class SynthesisConfig:
 
     need_video: bool = True
     soft_subtitle: bool = True
+    fps_mode: str = "source"  # source|30|60
+    resolution_mode: str = "source"  # source|fixed
+    resolution: str = "1080x1920"
+    quality_profile: str = "high"  # high|balanced|fast
 
 
 @dataclass
@@ -850,24 +854,24 @@ class FullProcessTask:
 
 
 class BatchTaskType(Enum):
-    """批量处理任务类型"""
+    """Тип задачи пакетной обработки"""
 
-    TRANSCRIBE = "批量转录"
-    SUBTITLE = "批量字幕"
-    TRANS_SUB = "转录+字幕"
-    FULL_PROCESS = "全流程处理"
+    TRANSCRIBE = "Пакетная транскрибация"
+    SUBTITLE = "Пакетные субтитры"
+    TRANS_SUB = "Транскрибация + субтитры"
+    FULL_PROCESS = "Полная обработка"
 
     def __str__(self):
         return self.value
 
 
 class BatchTaskStatus(Enum):
-    """批量处理任务状态"""
+    """Статусы задачи пакетной обработки"""
 
-    WAITING = "等待中"
-    RUNNING = "处理中"
-    COMPLETED = "已完成"
-    FAILED = "失败"
+    WAITING = "Ожидание"
+    RUNNING = "В обработке"
+    COMPLETED = "Завершено"
+    FAILED = "Ошибка"
 
     def __str__(self):
         return self.value

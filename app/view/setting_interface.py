@@ -24,7 +24,7 @@ from app.common.config import cfg
 from app.common.signal_bus import signalBus
 from app.components.EditComboBoxSettingCard import EditComboBoxSettingCard
 from app.components.LineEditSettingCard import LineEditSettingCard
-from app.config import AUTHOR, FEEDBACK_URL, HELP_URL, RELEASE_URL, VERSION, YEAR
+from app.config import APP_NAME, AUTHOR, FEEDBACK_URL, HELP_URL, RELEASE_URL, VERSION, YEAR
 from app.core.entities import LLMServiceEnum, TranscribeModelEnum, TranslatorServiceEnum
 from app.core.utils.test_opanai import get_openai_models, test_openai
 from app.thread.version_manager_thread import VersionManager
@@ -202,14 +202,14 @@ class SettingInterface(ScrollArea):
             "Открыть страницу помощи",
             FIF.HELP,
             "Помощь",
-            "Новые функции и советы по использованию VideoCaptioner",
+            f"Новые функции и советы по использованию {APP_NAME}",
             self.aboutGroup,
         )
         self.feedbackCard = PrimaryPushSettingCard(
             "Оставить отзыв",
             FIF.FEEDBACK,
             "Оставить отзыв",
-            "Ваш отзыв помогает улучшать VideoCaptioner",
+            f"Ваш отзыв помогает улучшать {APP_NAME}",
             self.aboutGroup,
         )
         self.aboutCard = PrimaryPushSettingCard(
@@ -263,7 +263,7 @@ class SettingInterface(ScrollArea):
             "https://api.videocaptioner.cn/register?aff=UrLB",
             "Перейти",
             FIF.DEVELOPER_TOOLS,
-            "Официальный API VideoCaptioner",
+            f"Официальный API {APP_NAME}",
             "Интеграция нескольких LLM, поддержка быстрой оптимизации и перевода",
             self.llmGroup,
         )

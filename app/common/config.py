@@ -359,6 +359,57 @@ class Config(QConfig):
         LanguageSerializer(),
         restart=True,
     )
+    auto_shorts_render_backend = OptionsConfigItem(
+        "MainWindow",
+        "AutoShortsRenderBackend",
+        "auto",
+        OptionsValidator(["auto", "cpu", "gpu", "cuda"]),
+    )
+    auto_shorts_clip_head_pad_ms = RangeConfigItem(
+        "MainWindow", "AutoShortsClipHeadPadMs", 120, RangeValidator(0, 2000)
+    )
+    auto_shorts_clip_tail_pad_ms = RangeConfigItem(
+        "MainWindow", "AutoShortsClipTailPadMs", 420, RangeValidator(0, 3000)
+    )
+    auto_shorts_speech_pre_pad_ms = RangeConfigItem(
+        "MainWindow", "AutoShortsSpeechPrePadMs", 220, RangeValidator(0, 1500)
+    )
+    auto_shorts_speech_post_pad_ms = RangeConfigItem(
+        "MainWindow", "AutoShortsSpeechPostPadMs", 320, RangeValidator(0, 2000)
+    )
+    auto_shorts_speech_merge_gap_ms = RangeConfigItem(
+        "MainWindow", "AutoShortsSpeechMergeGapMs", 260, RangeValidator(60, 2000)
+    )
+    auto_shorts_speech_min_coverage_percent = RangeConfigItem(
+        "MainWindow", "AutoShortsSpeechMinCoveragePercent", 74, RangeValidator(30, 100)
+    )
+    auto_shorts_repeat_similarity_percent = RangeConfigItem(
+        "MainWindow", "AutoShortsRepeatSimilarityPercent", 72, RangeValidator(40, 100)
+    )
+    batch_synthesis_fps_mode = OptionsConfigItem(
+        "MainWindow",
+        "BatchSynthesisFpsMode",
+        "source",
+        OptionsValidator(["source", "30", "60"]),
+    )
+    batch_synthesis_resolution_mode = OptionsConfigItem(
+        "MainWindow",
+        "BatchSynthesisResolutionMode",
+        "source",
+        OptionsValidator(["source", "fixed"]),
+    )
+    batch_synthesis_resolution = OptionsConfigItem(
+        "MainWindow",
+        "BatchSynthesisResolution",
+        "1080x1920",
+        OptionsValidator(["1080x1920", "720x1280", "1440x2560"]),
+    )
+    batch_synthesis_quality_profile = OptionsConfigItem(
+        "MainWindow",
+        "BatchSynthesisQualityProfile",
+        "high",
+        OptionsValidator(["high", "balanced", "fast"]),
+    )
 
     # ------------------- 更新配置 -------------------
     checkUpdateAtStartUp = ConfigItem(

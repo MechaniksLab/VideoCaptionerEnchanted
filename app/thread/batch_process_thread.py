@@ -48,6 +48,17 @@ class BatchProcessThread(QThread):
         self.factory = TaskFactory()
         self.threads = []  # 保存所有创建的线程
 
+    def _finalize_task_after_error(self, batch_task: BatchTask, error: str):
+        """统一处理任务错误收尾，避免队列在失败任务上卡住。"""
+        batch_task.status = BatchTaskStatus.FAILED
+        batch_task.error_message = error
+        self.task_error.emit(batch_task.file_path, error)
+        if batch_task.current_thread in self.threads:
+            try:
+                self.threads.remove(batch_task.current_thread)
+            except Exception:
+                pass
+
     def add_task(self, task: BatchTask):
         self.task_queue.put(task)
         self.current_tasks[task.file_path] = task
@@ -102,9 +113,7 @@ class BatchProcessThread(QThread):
 
     def _on_error_wrapper(self, batch_task: BatchTask, error: str):
         """错误信号包装器"""
-        batch_task.status = BatchTaskStatus.FAILED
-        batch_task.error_message = error
-        self.task_error.emit(batch_task.file_path, error)
+        self._finalize_task_after_error(batch_task, error)
 
     def _on_finished_wrapper(self, batch_task: BatchTask, task=None):
         """完成信号包装器"""
@@ -194,6 +203,10 @@ class BatchProcessThread(QThread):
         self, batch_task: BatchTask, task: TranscribeTask
     ):
         """转录+字幕任务转录完成包装器"""
+        if not task or not getattr(task, "output_path", None):
+            self._finalize_task_after_error(batch_task, "Не удалось завершить этап транскрибации")
+            return
+
         if batch_task.current_thread in self.threads:
             self.threads.remove(batch_task.current_thread)
 
@@ -264,6 +277,10 @@ class BatchProcessThread(QThread):
 
     def on_full_process_finished(self, batch_task: BatchTask, task: TranscribeTask):
         """处理转录完成后开始字幕任务"""
+        if not task or not getattr(task, "output_path", None):
+            self._finalize_task_after_error(batch_task, "Не удалось завершить этап транскрибации")
+            return
+
         if batch_task.current_thread in self.threads:
             self.threads.remove(batch_task.current_thread)
 
@@ -305,6 +322,10 @@ class BatchProcessThread(QThread):
         self, batch_task: BatchTask, video_path: str, subtitle_path: str
     ):
         """处理字幕完成后开始视频合成任务"""
+        if not video_path or not subtitle_path:
+            self._finalize_task_after_error(batch_task, "Не удалось завершить этап генерации субтитров")
+            return
+
         if batch_task.current_thread in self.threads:
             self.threads.remove(batch_task.current_thread)
 
