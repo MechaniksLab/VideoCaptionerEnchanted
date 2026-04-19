@@ -1,13 +1,13 @@
 {
     "MainWindow": {
         "AutoShortsClipHeadPadMs": 120,
-        "AutoShortsClipTailPadMs": 420,
+        "AutoShortsClipTailPadMs": 320,
         "AutoShortsRenderBackend": "gpu",
-        "AutoShortsRepeatSimilarityPercent": 88,
-        "AutoShortsSpeechMergeGapMs": 260,
+        "AutoShortsRepeatSimilarityPercent": 90,
+        "AutoShortsSpeechMergeGapMs": 160,
         "AutoShortsSpeechMinCoveragePercent": 74,
-        "AutoShortsSpeechPostPadMs": 320,
-        "AutoShortsSpeechPrePadMs": 220,
+        "AutoShortsSpeechPostPadMs": 200,
+        "AutoShortsSpeechPrePadMs": 150,
         "BatchSynthesisFpsMode": "60",
         "BatchSynthesisQualityProfile": "high",
         "BatchSynthesisResolution": "1080x1920",
@@ -57,7 +57,7 @@
     },
     "Update": {
         "CheckUpdateAtStartUp": true,
-        "LastKnownCommit": "bde10adb3b63a7a8f127532765130aaf7047f4f8",
+        "LastKnownCommit": "790591cce80d35c339096799acd02e0319d9aea5",
         "RepoBranch": "main",
         "RepoName": "ShortsCreatorStudio",
         "RepoOwner": "MechaniksLab"

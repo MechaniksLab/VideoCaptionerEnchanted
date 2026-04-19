@@ -23,29 +23,23 @@ logger = setup_logger("auto_shorts_thread")
 RENDER_DEBUG_LOG = LOG_PATH / "auto_shorts_render.log"
 
 
-class AutoShortsAnalyzeThread(QThread):
+class AutoShortsTranscribeThread(QThread):
     progress = pyqtSignal(int, str)
-    finished = pyqtSignal(list)
+    finished = pyqtSignal(dict)
     error = pyqtSignal(str)
 
     def __init__(
         self,
         video_path: str,
-        min_duration_s: int,
-        max_duration_s: int,
         range_enabled: bool = False,
         range_start_s: int = 0,
         range_end_s: int = 0,
-        repeat_similarity_percent: int = 72,
     ):
         super().__init__()
         self.video_path = video_path
-        self.min_duration_s = min_duration_s
-        self.max_duration_s = max_duration_s
         self.range_enabled = bool(range_enabled)
         self.range_start_s = max(0, int(range_start_s or 0))
         self.range_end_s = max(0, int(range_end_s or 0))
-        self.repeat_similarity_percent = max(40, min(100, int(repeat_similarity_percent or 72)))
 
     def run(self):
         temp_wav = None
@@ -54,28 +48,6 @@ class AutoShortsAnalyzeThread(QThread):
             if not Path(self.video_path).exists():
                 raise FileNotFoundError("Видео файл не найден")
 
-            source_video_for_asr = self.video_path
-            source_offset_ms = 0
-            if self.range_enabled and self.range_end_s > self.range_start_s:
-                self.progress.emit(3, "Подготовка тестового фрагмента...")
-                fd_clip, temp_clip = tempfile.mkstemp(suffix=".mp4")
-                os.close(fd_clip)
-                self._cut_video_segment(
-                    self.video_path,
-                    temp_clip,
-                    self.range_start_s,
-                    self.range_end_s,
-                )
-                source_video_for_asr = temp_clip
-                source_offset_ms = int(self.range_start_s * 1000)
-
-            self.progress.emit(5, "Подготовка аудио...")
-            fd, temp_wav = tempfile.mkstemp(suffix=".wav")
-            os.close(fd)
-            if not video2audio(source_video_for_asr, output=temp_wav):
-                raise RuntimeError("Не удалось извлечь аудио из видео")
-
-            self.progress.emit(15, "Распознавание речи...")
             transcribe_task = TaskFactory.create_transcribe_task(self.video_path, need_next_task=False)
             # Для плотного монтажа по речи нужны тайминги слов
             transcribe_task.transcribe_config.need_word_time_stamp = True
@@ -87,41 +59,56 @@ class AutoShortsAnalyzeThread(QThread):
                 transcribe_model=str(transcribe_task.transcribe_config.transcribe_model),
                 llm_service=str(cfg.llm_service.value),
             )
+
+            source_offset_ms = int(self.range_start_s * 1000) if (self.range_enabled and self.range_end_s > self.range_start_s) else 0
             asr_data = self._load_asr_cache(cache_key)
-            if asr_data is None:
-                asr_data = self._transcribe_with_fast_profile(temp_wav, transcribe_task.transcribe_config)
-                self._save_asr_cache(cache_key, asr_data)
-            else:
-                self.progress.emit(45, "ASR кеш: найдено, повторный Whisper пропущен")
+            if asr_data is not None:
+                self.progress.emit(8, "ASR кеш: найдено, Whisper пропущен")
+                self.progress.emit(100, "Whisper завершён (из кеша). Можно запускать отбор кандидатов")
+                self.finished.emit(
+                    {
+                        "asr_json": asr_data.to_json(),
+                        "source_offset_ms": int(source_offset_ms),
+                        "range_start_s": int(self.range_start_s),
+                        "range_end_s": int(self.range_end_s),
+                    }
+                )
+                return
 
-            llm_cfg = self._resolve_llm_config()
-            processor = ShortsProcessor(
-                min_duration_s=self.min_duration_s,
-                max_duration_s=self.max_duration_s,
-                llm_base_url=llm_cfg["base_url"],
-                llm_api_key=llm_cfg["api_key"],
-                llm_model=llm_cfg["model"],
-                repeat_similarity_threshold=self.repeat_similarity_percent / 100.0,
+            source_video_for_asr = self.video_path
+            if self.range_enabled and self.range_end_s > self.range_start_s:
+                self.progress.emit(3, "Подготовка тестового фрагмента...")
+                fd_clip, temp_clip = tempfile.mkstemp(suffix=".mp4")
+                os.close(fd_clip)
+                self._cut_video_segment(
+                    self.video_path,
+                    temp_clip,
+                    self.range_start_s,
+                    self.range_end_s,
+                )
+                source_video_for_asr = temp_clip
+
+            self.progress.emit(5, "Подготовка аудио...")
+            fd, temp_wav = tempfile.mkstemp(suffix=".wav")
+            os.close(fd)
+            if not video2audio(source_video_for_asr, output=temp_wav):
+                raise RuntimeError("Не удалось извлечь аудио из видео")
+
+            self.progress.emit(15, "Whisper: распознавание речи...")
+            asr_data = self._transcribe_with_fast_profile(temp_wav, transcribe_task.transcribe_config)
+            self._save_asr_cache(cache_key, asr_data)
+
+            self.progress.emit(100, "Whisper завершён. Можно запускать отбор кандидатов")
+            self.finished.emit(
+                {
+                    "asr_json": asr_data.to_json(),
+                    "source_offset_ms": int(source_offset_ms),
+                    "range_start_s": int(self.range_start_s),
+                    "range_end_s": int(self.range_end_s),
+                }
             )
-
-            candidates = processor.find_candidates(
-                asr_data,
-                progress_cb=lambda p, m: self.progress.emit(min(95, 70 + int(p * 0.25)), m),
-            )
-            if source_offset_ms > 0:
-                for c in candidates:
-                    c.start_ms += source_offset_ms
-                    c.end_ms += source_offset_ms
-                    if c.speech_ranges:
-                        c.speech_ranges = [
-                            (int(a) + source_offset_ms, int(b) + source_offset_ms)
-                            for a, b in c.speech_ranges
-                        ]
-
-            self.progress.emit(100, f"Найдено {len(candidates)} кандидатов")
-            self.finished.emit([c.to_dict() for c in candidates])
         except Exception as e:
-            logger.exception("Auto shorts analyze failed: %s", e)
+            logger.exception("Auto shorts transcribe failed: %s", e)
             self.error.emit(str(e))
         finally:
             if temp_wav and Path(temp_wav).exists():
@@ -186,7 +173,6 @@ class AutoShortsAnalyzeThread(QThread):
                 file_sig,
                 f"range={int(bool(range_enabled))}:{int(range_start_s)}-{int(range_end_s)}",
                 f"model={transcribe_model}",
-                f"llm={llm_service}",
                 "word_ts=1",
             ]
         )
@@ -386,6 +372,73 @@ class AutoShortsAnalyzeThread(QThread):
             "api_key": cfg.public_api_key.value,
             "model": cfg.public_model.value,
         }
+
+
+class AutoShortsCandidateThread(QThread):
+    progress = pyqtSignal(int, str)
+    finished = pyqtSignal(list)
+    error = pyqtSignal(str)
+
+    def __init__(
+        self,
+        asr_payload: Dict,
+        min_duration_s: int,
+        max_duration_s: int,
+        repeat_similarity_percent: int = 72,
+        min_candidates: int = 8,
+        max_candidates: int = 40,
+    ):
+        super().__init__()
+        self.asr_payload = asr_payload or {}
+        self.min_duration_s = int(min_duration_s)
+        self.max_duration_s = int(max_duration_s)
+        self.repeat_similarity_percent = max(40, min(100, int(repeat_similarity_percent or 72)))
+        self.min_candidates = max(1, int(min_candidates or 1))
+        self.max_candidates = max(self.min_candidates, int(max_candidates or self.min_candidates))
+
+    def run(self):
+        try:
+            asr_json = self.asr_payload.get("asr_json")
+            if not asr_json:
+                raise RuntimeError("Нет данных Whisper. Сначала выполните этап распознавания")
+
+            self.progress.emit(5, "Подготовка данных ASR...")
+            asr_data = ASRData.from_json(asr_json)
+            source_offset_ms = int(self.asr_payload.get("source_offset_ms", 0) or 0)
+
+            self.progress.emit(15, "LLM/эвристика: отбор интересных кандидатов...")
+            llm_cfg = AutoShortsTranscribeThread._resolve_llm_config()
+            processor = ShortsProcessor(
+                min_duration_s=self.min_duration_s,
+                max_duration_s=self.max_duration_s,
+                llm_base_url=llm_cfg["base_url"],
+                llm_api_key=llm_cfg["api_key"],
+                llm_model=llm_cfg["model"],
+                repeat_similarity_threshold=self.repeat_similarity_percent / 100.0,
+                min_candidates=self.min_candidates,
+                max_candidates=self.max_candidates,
+            )
+
+            candidates = processor.find_candidates(
+                asr_data,
+                progress_cb=lambda p, m: self.progress.emit(min(95, 20 + int(p * 0.75)), m),
+            )
+
+            if source_offset_ms > 0:
+                for c in candidates:
+                    c.start_ms += source_offset_ms
+                    c.end_ms += source_offset_ms
+                    if c.speech_ranges:
+                        c.speech_ranges = [
+                            (int(a) + source_offset_ms, int(b) + source_offset_ms)
+                            for a, b in c.speech_ranges
+                        ]
+
+            self.progress.emit(100, f"Кандидаты готовы: {len(candidates)}")
+            self.finished.emit([c.to_dict() for c in candidates])
+        except Exception as e:
+            logger.exception("Auto shorts candidate selection failed: %s", e)
+            self.error.emit(str(e))
 
 
 class AutoShortsRenderThread(QThread):

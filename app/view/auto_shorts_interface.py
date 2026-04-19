@@ -5,7 +5,7 @@ import sys
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from PyQt5.QtCore import QPointF, QRect, QRectF, Qt, QStandardPaths, QTimer, pyqtSignal
 from PyQt5.QtGui import QColor, QPainter, QPen, QPixmap
@@ -27,7 +27,6 @@ from app.common.config import cfg
 from app.common.theme_manager import get_theme_palette
 from app.config import APPDATA_PATH, WORK_PATH
 from app.core.entities import BatchTaskType, SupportedAudioFormats, SupportedVideoFormats
-from app.thread.auto_shorts_thread import AutoShortsAnalyzeThread, AutoShortsRenderThread
 
 
 class LayerPreviewWidget(QWidget):
@@ -371,23 +370,24 @@ class AutoShortsInterface(QWidget):
         self.candidates: List[Dict] = []
         self.rendered_files: List[str] = []
         self.last_output_dir: str = ""
-        self.template_path = APPDATA_PATH / "shorts_layout_template.json"
+        self.templates_dir = APPDATA_PATH / "shorts_templates"
+        self.template_state_path = APPDATA_PATH / "shorts_template_state.json"
+        self.template_path = self._resolve_startup_template_path()
         self.source_width = 1920
         self.source_height = 1080
         self.source_frame_pixmap = QPixmap()
         self.video_duration_s = 0
+        self.original_video_duration_s = 0
         self.selected_start_s = 0
         self.selected_end_s = 1
+        self.asr_payload: Dict = {}
+        self._autonomous_run = False
+        self._active_progress_stage = 0
 
         self._fx_preview_timer = QTimer(self)
         self._fx_preview_timer.setSingleShot(True)
         self._fx_preview_timer.setInterval(24)
         self._fx_preview_timer.timeout.connect(self._render_fx_preview_now)
-
-        self._template_autosave_timer = QTimer(self)
-        self._template_autosave_timer.setSingleShot(True)
-        self._template_autosave_timer.setInterval(350)
-        self._template_autosave_timer.timeout.connect(self._autosave_layout_template_silent)
 
         self._init_ui()
         self._apply_theme_style()
@@ -428,9 +428,9 @@ class AutoShortsInterface(QWidget):
         self.stage_card.setObjectName("shortsStageCard")
         stage_layout = QVBoxLayout(self.stage_card)
         stage_layout.addWidget(BodyLabel("Этапы:"))
-        self.stage_1 = QLabel("1) Анализ видео")
-        self.stage_2 = QLabel("2) Поиск интересных моментов")
-        self.stage_3 = QLabel("3) Выбор кандидатов")
+        self.stage_1 = QLabel("1) Whisper: разбор речи")
+        self.stage_2 = QLabel("2) LLM: отбор кандидатов")
+        self.stage_3 = QLabel("3) Проверка и выбор кандидатов")
         self.stage_4 = QLabel("4) Рендер шортсов")
         for w in [self.stage_1, self.stage_2, self.stage_3, self.stage_4]:
             stage_layout.addWidget(w)
@@ -441,28 +441,39 @@ class AutoShortsInterface(QWidget):
         control_layout = QVBoxLayout(self.control_card)
 
         title_row = QHBoxLayout()
-        title_row.addWidget(StrongBodyLabel("Параметры поиска"))
+        title_row.addWidget(StrongBodyLabel("Пайплайн генерации (строго по этапам)"))
         title_row.addStretch(1)
         control_layout.addLayout(title_row)
 
-        params_row = QHBoxLayout()
-        params_row.addWidget(BodyLabel("Мин. длительность (сек):"))
-        self.min_duration = SpinBox(self)
-        self.min_duration.setRange(8, 120)
-        self.min_duration.setValue(22)
-        params_row.addWidget(self.min_duration)
+        template_actions_top = QHBoxLayout()
+        template_actions_top.addWidget(BodyLabel("Шаблон:"))
+        self.load_template_btn = PushButton("Загрузить шаблон")
+        self.load_template_btn.clicked.connect(self._choose_and_load_layout_template)
+        self.save_template_btn = PushButton("Сохранить шаблон")
+        self.save_template_btn.clicked.connect(self._save_layout_template)
+        self.save_as_template_btn = PushButton("Сохранить как...")
+        self.save_as_template_btn.clicked.connect(self._save_layout_template_as)
+        self.reset_template_btn = PushButton("Сбросить шаблон")
+        self.reset_template_btn.clicked.connect(self._reset_layout_template)
+        template_actions_top.addWidget(self.load_template_btn)
+        template_actions_top.addWidget(self.save_template_btn)
+        template_actions_top.addWidget(self.save_as_template_btn)
+        template_actions_top.addWidget(self.reset_template_btn)
+        template_actions_top.addStretch(1)
+        control_layout.addLayout(template_actions_top)
 
-        params_row.addWidget(BodyLabel("Макс. длительность (сек):"))
-        self.max_duration = SpinBox(self)
-        self.max_duration.setRange(20, 300)
-        self.max_duration.setValue(110)
-        params_row.addWidget(self.max_duration)
+        template_scope_hint_top = BodyLabel(
+            "Шаблон сохраняет: кроп/позиции WEBCAM+GAME, 2-слойный режим, цветокоррекцию, "
+            "параметры этапов (диапазон, длительность, лимиты кандидатов, анти-дубль, склейку речи) "
+            "и настройки рендера. Не сохраняет: выбранные кандидаты и текущий список шортсов."
+        )
+        template_scope_hint_top.setWordWrap(True)
+        control_layout.addWidget(template_scope_hint_top)
 
-        self.analyze_btn = PrimaryPushButton("Найти интересные моменты")
-        self.analyze_btn.clicked.connect(self._start_analyze)
-        params_row.addStretch(1)
-        params_row.addWidget(self.analyze_btn)
-        control_layout.addLayout(params_row)
+        control_layout.addWidget(StrongBodyLabel("Этап 1: Whisper (распознавание речи)"))
+        stage1_hint = BodyLabel("Применяется на этапе 1: параметры ниже влияют только на распознавание и диапазон анализа.")
+        stage1_hint.setWordWrap(True)
+        control_layout.addWidget(stage1_hint)
 
         control_layout.addWidget(BodyLabel("Диапазон анализа (всегда активен):"))
         self.range_slider = TimeRangeSlider(self)
@@ -488,6 +499,53 @@ class AutoShortsInterface(QWidget):
         hint.setWordWrap(True)
         control_layout.addWidget(hint)
 
+        stage1_actions = QHBoxLayout()
+        self.transcribe_btn = PrimaryPushButton("1) Запустить Whisper")
+        self.transcribe_btn.clicked.connect(self._start_transcribe)
+        self.autonomous_checkbox = CheckBox("Полностью автономно")
+        self.run_all_btn = PushButton("Запустить все этапы подряд")
+        self.run_all_btn.clicked.connect(self._start_full_pipeline)
+        stage1_actions.addWidget(self.transcribe_btn)
+        stage1_actions.addWidget(self.autonomous_checkbox)
+        stage1_actions.addStretch(1)
+        stage1_actions.addWidget(self.run_all_btn)
+        control_layout.addLayout(stage1_actions)
+
+        self.stage1_progress_wrap = QWidget(self)
+        stage1_progress_layout = QVBoxLayout(self.stage1_progress_wrap)
+        stage1_progress_layout.setContentsMargins(0, 0, 0, 0)
+        self.stage1_progress_bar = ProgressBar(self)
+        self.stage1_progress_bar.setRange(0, 100)
+        self.stage1_progress_bar.setValue(0)
+        self.stage1_progress_label = BodyLabel("Этап 1: ожидание")
+        stage1_progress_layout.addWidget(self.stage1_progress_bar)
+        stage1_progress_layout.addWidget(self.stage1_progress_label)
+        self.stage1_progress_wrap.setVisible(False)
+        control_layout.addWidget(self.stage1_progress_wrap)
+
+        control_layout.addWidget(StrongBodyLabel("Этап 2: Отбор кандидатов (LLM/эвристика)"))
+        stage2_hint = BodyLabel("Применяется на этапе 2: фильтры ниже влияют на поиск, ранжирование и число кандидатов.")
+        stage2_hint.setWordWrap(True)
+        control_layout.addWidget(stage2_hint)
+        self.llm_tokens_hint_label = BodyLabel("Оценка токенов LLM: появится после этапа 1 (Whisper)")
+        self.llm_tokens_hint_label.setWordWrap(True)
+        control_layout.addWidget(self.llm_tokens_hint_label)
+
+        duration_row = QHBoxLayout()
+        duration_row.addWidget(BodyLabel("Мин. длительность шортса (сек):"))
+        self.min_duration = SpinBox(self)
+        self.min_duration.setRange(8, 120)
+        self.min_duration.setValue(22)
+        duration_row.addWidget(self.min_duration)
+
+        duration_row.addWidget(BodyLabel("Макс. длительность шортса (сек):"))
+        self.max_duration = SpinBox(self)
+        self.max_duration.setRange(20, 300)
+        self.max_duration.setValue(110)
+        duration_row.addWidget(self.max_duration)
+        duration_row.addStretch(1)
+        control_layout.addLayout(duration_row)
+
         tune_title = StrongBodyLabel("Тонкая настройка монтажа")
         control_layout.addWidget(tune_title)
 
@@ -511,6 +569,37 @@ class AutoShortsInterface(QWidget):
         anti_repeat_row.addWidget(self.repeat_similarity_spin)
         anti_repeat_row.addStretch(1)
         control_layout.addLayout(anti_repeat_row)
+
+        candidates_limit_title = BodyLabel("1.1) Количество кандидатов")
+        control_layout.addWidget(candidates_limit_title)
+        candidates_limit_hint = BodyLabel(
+            "Ограничивает итоговое число найденных моментов: минимум и максимум на ролик. "
+            "По умолчанию подставляются рекомендации по длине исходного видео."
+        )
+        candidates_limit_hint.setWordWrap(True)
+        control_layout.addWidget(candidates_limit_hint)
+
+        candidates_limit_row = QHBoxLayout()
+        candidates_limit_row.addWidget(BodyLabel("Мин. кандидатов:"))
+        self.min_candidates_spin = SpinBox(self)
+        self.min_candidates_spin.setRange(1, 300)
+        self.min_candidates_spin.setValue(8)
+        candidates_limit_row.addWidget(self.min_candidates_spin)
+
+        candidates_limit_row.addWidget(BodyLabel("Макс. кандидатов:"))
+        self.max_candidates_spin = SpinBox(self)
+        self.max_candidates_spin.setRange(2, 500)
+        self.max_candidates_spin.setValue(40)
+        candidates_limit_row.addWidget(self.max_candidates_spin)
+
+        self.recommend_candidates_btn = PushButton("Рекомендовать по длине")
+        self.recommend_candidates_btn.clicked.connect(self._apply_recommended_candidate_limits)
+        candidates_limit_row.addWidget(self.recommend_candidates_btn)
+        candidates_limit_row.addStretch(1)
+        control_layout.addLayout(candidates_limit_row)
+
+        self.min_candidates_spin.valueChanged.connect(self._on_candidate_limits_changed)
+        self.max_candidates_spin.valueChanged.connect(self._on_candidate_limits_changed)
 
         anti_cut_title = BodyLabel("2) Границы фраз (чтобы не резало слова)")
         control_layout.addWidget(anti_cut_title)
@@ -590,13 +679,35 @@ class AutoShortsInterface(QWidget):
         clip_pad_hint.setWordWrap(True)
         control_layout.addWidget(clip_pad_hint)
 
+        stage2_actions = QHBoxLayout()
+        self.select_candidates_btn = PrimaryPushButton("2) Отобрать кандидатов")
+        self.select_candidates_btn.clicked.connect(self._start_candidate_selection)
+        stage2_actions.addWidget(self.select_candidates_btn)
+        stage2_actions.addStretch(1)
+        control_layout.addLayout(stage2_actions)
+
+        stage3_hint = BodyLabel("Этап 3: после отбора проверьте таблицу кандидатов ниже и отметьте нужные фрагменты.")
+        stage3_hint.setWordWrap(True)
+        control_layout.addWidget(stage3_hint)
+
+        self.stage2_progress_wrap = QWidget(self)
+        stage2_progress_layout = QVBoxLayout(self.stage2_progress_wrap)
+        stage2_progress_layout.setContentsMargins(0, 0, 0, 0)
+        self.stage2_progress_bar = ProgressBar(self)
+        self.stage2_progress_bar.setRange(0, 100)
+        self.stage2_progress_bar.setValue(0)
+        self.stage2_progress_label = BodyLabel("Этап 2: ожидание")
+        stage2_progress_layout.addWidget(self.stage2_progress_bar)
+        stage2_progress_layout.addWidget(self.stage2_progress_label)
+        self.stage2_progress_wrap.setVisible(False)
+        control_layout.addWidget(self.stage2_progress_wrap)
+
         self.main_layout.addWidget(self.control_card)
 
         self.template_card = CardWidget(self)
         self.template_card.setObjectName("shortsTemplateCard")
         template_layout = QVBoxLayout(self.template_card)
         template_layout.addWidget(StrongBodyLabel("Наглядный шаблон монтажа"))
-
         frame_row = QHBoxLayout()
         frame_row.addWidget(BodyLabel("Кадр предпросмотра (сек):"))
         self.preview_time_s = SpinBox(self)
@@ -648,18 +759,8 @@ class AutoShortsInterface(QWidget):
         row_tpl_actions = QHBoxLayout()
         self.dual_layer_enabled = CheckBox("Включить двухслойный шаблон")
         self.dual_layer_enabled.setChecked(True)
-        self.dual_layer_enabled.stateChanged.connect(lambda _: self._schedule_template_autosave())
-        self.reset_template_btn = PushButton("Сбросить шаблон")
-        self.reset_template_btn.clicked.connect(self._reset_layout_template)
-        self.load_template_btn = PushButton("Загрузить шаблон")
-        self.load_template_btn.clicked.connect(self._load_layout_template)
-        self.save_template_btn = PushButton("Сохранить шаблон")
-        self.save_template_btn.clicked.connect(self._save_layout_template)
         row_tpl_actions.addWidget(self.dual_layer_enabled)
         row_tpl_actions.addStretch(1)
-        row_tpl_actions.addWidget(self.reset_template_btn)
-        row_tpl_actions.addWidget(self.load_template_btn)
-        row_tpl_actions.addWidget(self.save_template_btn)
         template_layout.addLayout(row_tpl_actions)
 
         fx_title = StrongBodyLabel("Цветокоррекция слоёв")
@@ -781,6 +882,7 @@ class AutoShortsInterface(QWidget):
         self._link_fx_control_pair(self.gm_sharpness, self.gm_sharpness_slider)
         self.main_layout.addWidget(self.template_card)
 
+        self.main_layout.addWidget(StrongBodyLabel("Этап 3: Проверка и ручной выбор кандидатов"))
         self.table = QTableWidget(self)
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels(
@@ -791,6 +893,11 @@ class AutoShortsInterface(QWidget):
         self.table.setAlternatingRowColors(False)
         self.table.verticalHeader().setDefaultSectionSize(64)
         self.main_layout.addWidget(self.table)
+
+        self.main_layout.addWidget(StrongBodyLabel("Этап 4: Рендер выбранных шортсов"))
+        stage4_hint = BodyLabel("Параметры рендера ниже применяются только на этапе 4.")
+        stage4_hint.setWordWrap(True)
+        self.main_layout.addWidget(stage4_hint)
 
         self.bottom_card = CardWidget(self)
         self.bottom_card.setObjectName("shortsBottomCard")
@@ -809,19 +916,16 @@ class AutoShortsInterface(QWidget):
         self.render_fps_combo = ComboBox(self)
         self.render_fps_combo.addItems(["Исходный", "30", "60"])
         self.render_fps_combo.setCurrentIndex(1)
-        self.render_fps_combo.currentTextChanged.connect(lambda _v: self._schedule_template_autosave())
 
         self.render_resolution_label = BodyLabel("Разрешение:")
         self.render_resolution_combo = ComboBox(self)
         self.render_resolution_combo.addItems(["1080x1920", "720x1280", "1440x2560", "Исходное"])
         self.render_resolution_combo.setCurrentIndex(0)
-        self.render_resolution_combo.currentTextChanged.connect(lambda _v: self._schedule_template_autosave())
 
         self.render_quality_label = BodyLabel("Качество:")
         self.render_quality_combo = ComboBox(self)
         self.render_quality_combo.addItems(["Высокое", "Сбалансированное", "Быстрое"])
         self.render_quality_combo.setCurrentIndex(1)
-        self.render_quality_combo.currentTextChanged.connect(lambda _v: self._schedule_template_autosave())
 
         self.render_btn = PrimaryPushButton("Сделать шортсы из выбранных")
         self.render_btn.clicked.connect(self._start_render)
@@ -843,12 +947,17 @@ class AutoShortsInterface(QWidget):
         bottom_layout.addWidget(self.render_btn)
         self.main_layout.addWidget(self.bottom_card)
 
-        self.progress_bar = ProgressBar(self)
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setValue(0)
-        self.progress_label = BodyLabel("Ожидание")
-        self.main_layout.addWidget(self.progress_bar)
-        self.main_layout.addWidget(self.progress_label)
+        self.stage4_progress_wrap = QWidget(self)
+        stage4_progress_layout = QVBoxLayout(self.stage4_progress_wrap)
+        stage4_progress_layout.setContentsMargins(0, 0, 0, 0)
+        self.stage4_progress_bar = ProgressBar(self)
+        self.stage4_progress_bar.setRange(0, 100)
+        self.stage4_progress_bar.setValue(0)
+        self.stage4_progress_label = BodyLabel("Этап 4: ожидание")
+        stage4_progress_layout.addWidget(self.stage4_progress_bar)
+        stage4_progress_layout.addWidget(self.stage4_progress_label)
+        self.stage4_progress_wrap.setVisible(False)
+        self.main_layout.addWidget(self.stage4_progress_wrap)
 
         output_row = QHBoxLayout()
         self.output_hint_label = BodyLabel("Папка результата: пока нет")
@@ -884,22 +993,46 @@ class AutoShortsInterface(QWidget):
         root_layout.addWidget(self.scroll_area)
 
         self._set_stage(0)
-        self._load_layout_template()
+        self._set_active_progress_stage(0)
+        # Важный UX-фикс: откладываем загрузку шаблона до следующего цикла UI,
+        # чтобы старт окна не подвисал на тяжёлой инициализации предпросмотра.
+        QTimer.singleShot(0, self._load_initial_template_deferred)
+
+    def _load_initial_template_deferred(self):
+        try:
+            self._load_layout_template()
+        except Exception:
+            pass
+
+    def _set_active_progress_stage(self, stage_idx: int):
+        self._active_progress_stage = int(stage_idx or 0)
+        self.stage1_progress_wrap.setVisible(self._active_progress_stage == 1)
+        self.stage2_progress_wrap.setVisible(self._active_progress_stage == 2)
+        self.stage4_progress_wrap.setVisible(self._active_progress_stage == 4)
+
+    def _set_stage_progress(self, value: int, message: str = ""):
+        value = max(0, min(100, int(value)))
+        if self._active_progress_stage == 1:
+            self.stage1_progress_bar.setValue(value)
+            if message:
+                self.stage1_progress_label.setText(message)
+        elif self._active_progress_stage == 2:
+            self.stage2_progress_bar.setValue(value)
+            if message:
+                self.stage2_progress_label.setText(message)
+        elif self._active_progress_stage == 4:
+            self.stage4_progress_bar.setValue(value)
+            if message:
+                self.stage4_progress_label.setText(message)
 
     def _on_keep_aspect_changed(self):
         enabled = self.keep_aspect_checkbox.isChecked()
         self.source_preview.set_keep_aspect(enabled)
         self.output_preview.set_keep_aspect(enabled)
         self.effects_preview.set_keep_aspect(enabled)
-        self._autosave_layout_template_silent()
-        self._schedule_template_autosave()
 
     def _on_layout_changed(self):
         self._refresh_output_composite_preview()
-        # Важный фикс: сохраняем layout сразу при интерактивном перетаскивании зон,
-        # чтобы позиции точно не терялись после перезапуска приложения.
-        self._autosave_layout_template_silent()
-        self._schedule_template_autosave()
 
     def _apply_theme_style(self):
         p = get_theme_palette()
@@ -997,8 +1130,10 @@ class AutoShortsInterface(QWidget):
         if file_path:
             self.video_path = file_path
             self.video_label.setText(file_path)
+            self.asr_payload = {}
             self.candidates = []
             self.table.setRowCount(0)
+            self._update_llm_token_estimate()
             self._set_stage(1)
             self._sync_range_with_video_duration(file_path)
             self._load_source_preview_frame(file_path, self.preview_time_s.value())
@@ -1011,11 +1146,34 @@ class AutoShortsInterface(QWidget):
     def _sync_range_with_video_duration(self, video_path: str):
         duration_s = self._probe_video_duration_s(video_path)
         self.video_duration_s = max(1, duration_s)
+        self.original_video_duration_s = self.video_duration_s
         self.selected_start_s = 0
         self.selected_end_s = self.video_duration_s
         self.range_slider.set_bounds(0, self.video_duration_s)
         self.range_slider.set_values(self.selected_start_s, self.selected_end_s, emit_signal=False)
         self._update_range_labels()
+        # Не меняем min/max кандидатов автоматически при выборе ролика.
+        # Рекомендации применяются только по кнопке "Рекомендовать по длине".
+
+    def _recommend_candidate_limits(self, duration_s: int):
+        d = max(1, int(duration_s or 1))
+        minutes = d / 60.0
+        target = int(round(minutes * 2.4 + 4))
+        target = max(8, min(160, target))
+        rec_min = max(4, int(round(target * 0.65)))
+        rec_max = max(rec_min + 2, int(round(target * 1.65)))
+        rec_max = min(260, rec_max)
+        return rec_min, rec_max
+
+    def _apply_recommended_candidate_limits(self):
+        rec_min, rec_max = self._recommend_candidate_limits(self.original_video_duration_s)
+        self.min_candidates_spin.setValue(rec_min)
+        self.max_candidates_spin.setValue(rec_max)
+
+    def _on_candidate_limits_changed(self, _value: int):
+        if self.max_candidates_spin.value() < self.min_candidates_spin.value():
+            self.max_candidates_spin.setValue(self.min_candidates_spin.value())
+        self._update_llm_token_estimate()
 
     def _on_range_slider_changed(self, start_s: int, end_s: int):
         self.selected_start_s = int(start_s)
@@ -1061,7 +1219,18 @@ class AutoShortsInterface(QWidget):
             pass
         return 1
 
+    def _start_full_pipeline(self):
+        self._autonomous_run = True
+        self.autonomous_checkbox.setChecked(True)
+        self._start_transcribe(autonomous=True)
+
     def _start_analyze(self):
+        # backward compatibility со старой кнопкой/сигналами
+        self._start_transcribe(autonomous=False)
+
+    def _start_transcribe(self, autonomous: bool = None):
+        from app.thread.auto_shorts_thread import AutoShortsTranscribeThread
+
         if not self.video_path:
             InfoBar.warning(
                 "Внимание",
@@ -1071,6 +1240,86 @@ class AutoShortsInterface(QWidget):
                 parent=self,
             )
             return
+
+        if autonomous is None:
+            autonomous = self.autonomous_checkbox.isChecked()
+        self._autonomous_run = bool(autonomous)
+
+        self._set_stage(1)
+        self.transcribe_btn.setEnabled(False)
+        self.select_candidates_btn.setEnabled(False)
+        self.run_all_btn.setEnabled(False)
+        self.render_btn.setEnabled(False)
+        self._set_active_progress_stage(1)
+        self._set_stage_progress(0, "Этап 1/4: Whisper...")
+
+        range_start = int(self.selected_start_s)
+        range_end = int(self.selected_end_s)
+        if range_end <= range_start:
+            InfoBar.warning(
+                "Внимание",
+                "Время конца диапазона должно быть больше времени старта",
+                duration=2500,
+                position=InfoBarPosition.TOP,
+                parent=self,
+            )
+            self.transcribe_btn.setEnabled(True)
+            self.select_candidates_btn.setEnabled(True)
+            self.run_all_btn.setEnabled(True)
+            self.render_btn.setEnabled(True)
+            return
+
+        self.transcribe_thread = AutoShortsTranscribeThread(
+            self.video_path,
+            range_enabled=True,
+            range_start_s=range_start,
+            range_end_s=range_end,
+        )
+        self.transcribe_thread.progress.connect(self._on_progress)
+        self.transcribe_thread.finished.connect(self._on_transcribe_finished)
+        self.transcribe_thread.error.connect(self._on_error)
+        self.transcribe_thread.start()
+
+    def _on_transcribe_finished(self, asr_payload: Dict):
+        self.asr_payload = dict(asr_payload or {})
+        self._update_llm_token_estimate()
+        self.transcribe_btn.setEnabled(True)
+        self.select_candidates_btn.setEnabled(True)
+        self.run_all_btn.setEnabled(True)
+        self.render_btn.setEnabled(True)
+        self._set_stage(2)
+        self._set_stage_progress(100, "Whisper завершён. Запустите этап 2: отбор кандидатов")
+        self._set_active_progress_stage(0)
+        InfoBar.success(
+            "Этап 1 завершён",
+            "Whisper завершён. Теперь можно запускать LLM-отбор кандидатов.",
+            duration=3000,
+            position=InfoBarPosition.TOP,
+            parent=self,
+        )
+        if self._autonomous_run:
+            self._start_candidate_selection(autonomous=True)
+
+    def _start_candidate_selection(self, autonomous: bool = None):
+        from app.thread.auto_shorts_thread import AutoShortsCandidateThread
+
+        if not self.video_path:
+            InfoBar.warning("Внимание", "Сначала выберите видео", duration=2000, position=InfoBarPosition.TOP, parent=self)
+            return
+
+        if not self.asr_payload:
+            InfoBar.warning(
+                "Внимание",
+                "Сначала выполните этап 1 (Whisper)",
+                duration=2500,
+                position=InfoBarPosition.TOP,
+                parent=self,
+            )
+            return
+
+        if autonomous is None:
+            autonomous = self.autonomous_checkbox.isChecked()
+        self._autonomous_run = bool(autonomous)
 
         min_d = self.min_duration.value()
         max_d = self.max_duration.value()
@@ -1084,51 +1333,46 @@ class AutoShortsInterface(QWidget):
             )
             return
 
-        self._set_stage(1)
-        self.analyze_btn.setEnabled(False)
-        self.progress_bar.setValue(0)
-        self.progress_label.setText("Анализ...")
+        self._set_stage(2)
+        self.transcribe_btn.setEnabled(False)
+        self.select_candidates_btn.setEnabled(False)
+        self.run_all_btn.setEnabled(False)
+        self.render_btn.setEnabled(False)
+        self._set_active_progress_stage(2)
+        self._set_stage_progress(0, "Этап 2/4: LLM-отбор кандидатов...")
 
-        range_start = int(self.selected_start_s)
-        range_end = int(self.selected_end_s)
-        if range_end <= range_start:
-            InfoBar.warning(
-                "Внимание",
-                "Время конца диапазона должно быть больше времени старта",
-                duration=2500,
-                position=InfoBarPosition.TOP,
-                parent=self,
-            )
-            self.analyze_btn.setEnabled(True)
-            return
-
-        self.analyze_thread = AutoShortsAnalyzeThread(
-            self.video_path,
-            min_d,
-            max_d,
-            range_enabled=True,
-            range_start_s=range_start,
-            range_end_s=range_end,
+        self.candidate_thread = AutoShortsCandidateThread(
+            self.asr_payload,
+            min_duration_s=min_d,
+            max_duration_s=max_d,
             repeat_similarity_percent=self.repeat_similarity_spin.value(),
+            min_candidates=self.min_candidates_spin.value(),
+            max_candidates=self.max_candidates_spin.value(),
         )
-        self.analyze_thread.progress.connect(self._on_progress)
-        self.analyze_thread.finished.connect(self._on_analyze_finished)
-        self.analyze_thread.error.connect(self._on_error)
-        self.analyze_thread.start()
+        self.candidate_thread.progress.connect(self._on_progress)
+        self.candidate_thread.finished.connect(self._on_candidate_selection_finished)
+        self.candidate_thread.error.connect(self._on_error)
+        self.candidate_thread.start()
 
-    def _on_analyze_finished(self, candidates: List[Dict]):
-        self.analyze_btn.setEnabled(True)
+    def _on_candidate_selection_finished(self, candidates: List[Dict]):
+        self.transcribe_btn.setEnabled(True)
+        self.select_candidates_btn.setEnabled(True)
+        self.run_all_btn.setEnabled(True)
+        self.render_btn.setEnabled(True)
         self.candidates = candidates
         self._fill_table(candidates)
         self._set_stage(3)
-        self.progress_label.setText(f"Готово. Найдено кандидатов: {len(candidates)}")
+        self._set_stage_progress(100, f"Этап 2 завершён. Найдено кандидатов: {len(candidates)}")
+        self._set_active_progress_stage(0)
         InfoBar.success(
-            "Анализ завершен",
-            f"Найдено моментов: {len(candidates)}. Выберите нужные.",
+            "Этап 2 завершён",
+            f"Найдено моментов: {len(candidates)}. Проверьте выбор перед рендером.",
             duration=3000,
             position=InfoBarPosition.TOP,
             parent=self,
         )
+        if self._autonomous_run:
+            self._start_render(autonomous=True)
 
     def _fill_table(self, candidates: List[Dict]):
         self.table.setRowCount(0)
@@ -1176,7 +1420,13 @@ class AutoShortsInterface(QWidget):
                 selected.append(self.candidates[row])
         return selected
 
-    def _start_render(self):
+    def _start_render(self, autonomous: bool = None):
+        from app.thread.auto_shorts_thread import AutoShortsRenderThread
+
+        if autonomous is None:
+            autonomous = self.autonomous_checkbox.isChecked()
+        self._autonomous_run = bool(autonomous)
+
         if not self.video_path:
             return
         selected = self._collect_selected()
@@ -1191,10 +1441,13 @@ class AutoShortsInterface(QWidget):
             return
 
         self._set_stage(4)
+        self.transcribe_btn.setEnabled(False)
+        self.select_candidates_btn.setEnabled(False)
+        self.run_all_btn.setEnabled(False)
         self.render_btn.setEnabled(False)
         self.stop_render_btn.setEnabled(True)
-        self.progress_bar.setValue(0)
-        self.progress_label.setText("Рендер шортсов...")
+        self._set_active_progress_stage(4)
+        self._set_stage_progress(0, "Этап 4/4: Рендер шортсов...")
 
         stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_dir = str(WORK_PATH / "shorts" / f"shorts_{Path(self.video_path).stem}_{stamp}")
@@ -1214,10 +1467,13 @@ class AutoShortsInterface(QWidget):
         self.render_thread.start()
 
     def _on_render_finished(self, files: List[str]):
+        self.transcribe_btn.setEnabled(True)
+        self.select_candidates_btn.setEnabled(True)
+        self.run_all_btn.setEnabled(True)
         self.render_btn.setEnabled(True)
         self.stop_render_btn.setEnabled(False)
-        self.progress_bar.setValue(100)
-        self.progress_label.setText(f"Готово. Создано шортсов: {len(files)}")
+        self._autonomous_run = False
+        self._set_stage_progress(100, f"Готово. Создано шортсов: {len(files)}")
         if self.last_output_dir:
             self.output_hint_label.setText(f"Папка результата: {self.last_output_dir}")
         self.rendered_files = list(files)
@@ -1231,15 +1487,15 @@ class AutoShortsInterface(QWidget):
         )
 
     def _on_progress(self, value: int, message: str):
-        self.progress_bar.setValue(max(0, min(100, int(value))))
-        self.progress_label.setText(message)
-        if value >= 70:
-            self._set_stage(2)
+        self._set_stage_progress(value, message)
 
     def _on_error(self, message: str):
-        self.analyze_btn.setEnabled(True)
+        self.transcribe_btn.setEnabled(True)
+        self.select_candidates_btn.setEnabled(True)
+        self.run_all_btn.setEnabled(True)
         self.render_btn.setEnabled(True)
         self.stop_render_btn.setEnabled(False)
+        self._autonomous_run = False
         InfoBar.error(
             "Ошибка",
             message,
@@ -1312,6 +1568,17 @@ class AutoShortsInterface(QWidget):
                 "clip_head_pad_ms": int(self.clip_head_pad_spin.value()),
                 "clip_tail_pad_ms": int(self.clip_tail_pad_spin.value()),
             },
+            "ui_settings": {
+                "preview_time_s": int(self.preview_time_s.value()),
+                "keep_aspect": bool(self.keep_aspect_checkbox.isChecked()),
+                "autonomous": bool(self.autonomous_checkbox.isChecked()),
+                "range_start_s": int(self.selected_start_s),
+                "range_end_s": int(self.selected_end_s),
+                "min_duration_s": int(self.min_duration.value()),
+                "max_duration_s": int(self.max_duration.value()),
+                "min_candidates": int(self.min_candidates_spin.value()),
+                "max_candidates": int(self.max_candidates_spin.value()),
+            },
         }
 
     def _reset_layout_template(self):
@@ -1348,6 +1615,7 @@ class AutoShortsInterface(QWidget):
                 json.dumps(self._build_layout_template(), ensure_ascii=False, indent=2),
                 encoding="utf-8",
             )
+            self._persist_last_template_path(self.template_path)
             InfoBar.success(
                 "Шаблон сохранён",
                 str(self.template_path),
@@ -1358,11 +1626,55 @@ class AutoShortsInterface(QWidget):
         except Exception as e:
             InfoBar.error("Ошибка", f"Не удалось сохранить шаблон: {e}", duration=3000, parent=self)
 
-    def _load_layout_template(self):
+    def _save_layout_template_as(self):
         try:
-            if not self.template_path.exists():
+            self.templates_dir.mkdir(parents=True, exist_ok=True)
+            default_name = self.template_path.name if self.template_path else "template.json"
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "Сохранить шаблон как",
+                str(self.templates_dir / default_name),
+                "JSON (*.json)",
+            )
+            if not file_path:
                 return
-            data = json.loads(self.template_path.read_text(encoding="utf-8"))
+            chosen = Path(file_path)
+            if chosen.suffix.lower() != ".json":
+                chosen = chosen.with_suffix(".json")
+            self.template_path = chosen
+            self._save_layout_template()
+        except Exception as e:
+            InfoBar.error("Ошибка", f"Не удалось сохранить шаблон: {e}", duration=3000, parent=self)
+
+    def _choose_and_load_layout_template(self):
+        try:
+            self.templates_dir.mkdir(parents=True, exist_ok=True)
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "Загрузить шаблон",
+                str(self.templates_dir),
+                "JSON (*.json)",
+            )
+            if not file_path:
+                return
+            self._load_layout_template(Path(file_path), persist_last=True)
+        except Exception as e:
+            InfoBar.error("Ошибка", f"Не удалось загрузить шаблон: {e}", duration=3000, parent=self)
+
+    def _load_layout_template(
+        self,
+        template_path: Optional[Path] = None,
+        persist_last: bool = True,
+        apply_ui_settings: bool = True,
+    ):
+        try:
+            path_to_load = Path(template_path) if template_path else self.template_path
+            if not path_to_load.exists():
+                return
+            data = json.loads(path_to_load.read_text(encoding="utf-8"))
+            self.template_path = path_to_load
+            if persist_last:
+                self._persist_last_template_path(self.template_path)
             source_canvas = data.get("source_canvas", {}) if isinstance(data, dict) else {}
             try:
                 saved_w = int(source_canvas.get("w", self.source_width))
@@ -1474,7 +1786,200 @@ class AutoShortsInterface(QWidget):
                 except Exception:
                     pass
 
+            ui_settings = data.get("ui_settings", {}) if isinstance(data, dict) else {}
+            if apply_ui_settings and isinstance(ui_settings, dict):
+                try:
+                    self.preview_time_s.setValue(
+                        int(ui_settings.get("preview_time_s", self.preview_time_s.value()))
+                    )
+                    self.keep_aspect_checkbox.setChecked(
+                        bool(ui_settings.get("keep_aspect", self.keep_aspect_checkbox.isChecked()))
+                    )
+                    self.autonomous_checkbox.setChecked(
+                        bool(ui_settings.get("autonomous", self.autonomous_checkbox.isChecked()))
+                    )
+                    self.min_duration.setValue(
+                        int(ui_settings.get("min_duration_s", self.min_duration.value()))
+                    )
+                    self.max_duration.setValue(
+                        int(ui_settings.get("max_duration_s", self.max_duration.value()))
+                    )
+                    self.min_candidates_spin.setValue(
+                        int(ui_settings.get("min_candidates", self.min_candidates_spin.value()))
+                    )
+                    self.max_candidates_spin.setValue(
+                        int(ui_settings.get("max_candidates", self.max_candidates_spin.value()))
+                    )
+
+                    loaded_start = int(ui_settings.get("range_start_s", self.selected_start_s))
+                    loaded_end = int(ui_settings.get("range_end_s", self.selected_end_s))
+                    self.selected_start_s = max(0, loaded_start)
+                    self.selected_end_s = max(self.selected_start_s + 1, loaded_end)
+                    self.range_slider.set_values(self.selected_start_s, self.selected_end_s, emit_signal=False)
+                    self._update_range_labels()
+                except Exception:
+                    pass
+
             self._refresh_output_composite_preview()
+            self._update_llm_token_estimate()
+        except Exception:
+            pass
+
+    def _update_llm_token_estimate(self):
+        if not hasattr(self, "llm_tokens_hint_label"):
+            return
+
+        asr_json = (self.asr_payload or {}).get("asr_json")
+        if not asr_json:
+            self.llm_tokens_hint_label.setText("Оценка токенов LLM: появится после этапа 1 (Whisper)")
+            return
+
+        segments = self._extract_asr_segments(asr_json)
+        if not segments:
+            self.llm_tokens_hint_label.setText("Оценка токенов LLM: не удалось извлечь сегменты из Whisper")
+            return
+
+        # В реальном пайплайне запросы в LLM идут пакетами по 140 сегментов (overlap 35),
+        # поэтому показываем оценку "на 1 пакет" и "в сумме".
+        packet_size = 140
+        overlap = 35
+        packets = self._estimate_packet_count(len(segments), packet_size=packet_size, overlap=overlap)
+
+        sample_rows = []
+        for idx, seg in enumerate(segments[:packet_size]):
+            sample_rows.append(
+                {
+                    "idx": int(idx),
+                    "start_ms": int(seg["start_ms"]),
+                    "end_ms": int(seg["end_ms"]),
+                    "text": str(seg["text"]),
+                }
+            )
+
+        # Ближе к реальности LM Studio: считаем токены по длине JSON-пакета + системного промпта.
+        user_payload = f"Сегменты:\n{json.dumps(sample_rows, ensure_ascii=False)}"
+        min_s = max(8, int(self.min_duration.value()))
+        max_s = max(min_s + 5, int(self.max_duration.value()))
+        system_payload = (
+            "Ты enterprise-редактор YouTube Shorts. Найди лучшие моменты удержания. "
+            "Критерии: hook в первые 2-5 секунд, эмоция, конфликт/неожиданность, панчлайн, кульминация, потенциал для шеринга. "
+            "Верни СТРОГО JSON: "
+            "{\"items\":[{\"start_idx\":int,\"end_idx\":int,\"score\":0-100,\"title\":str,\"reason\":str,"
+            "\"hook\":0-10,\"emotion\":0-10,\"novelty\":0-10,\"shareability\":0-10}]}. "
+            f"Длительность каждого фрагмента {min_s}-{max_s} секунд. "
+            "Не придумывай таймкоды, используй только переданные idx."
+        )
+
+        # Калибровка под реальное поведение LM Studio:
+        # для JSON с таймкодами/индексами и RU/EN текста фактическая токенизация
+        # обычно заметно «плотнее», чем грубое 1 токен ~= 3 символа.
+        # Используем более реалистичный коэффициент 1.6 символа/токен.
+        per_packet_input_tokens = max(128, int((len(system_payload) + len(user_payload)) / 1.6))
+
+        # max_candidates на UI относится ко всему этапу, а не к одному packet-запросу.
+        # На один пакет ограничиваем ожидаемое число item, чтобы не завышать context.
+        target_candidates = max(1, min(24, int(self.max_candidates_spin.value())))
+        per_packet_output_tokens = 180 + target_candidates * 75
+        per_packet_total = per_packet_input_tokens + per_packet_output_tokens
+
+        total_input_tokens = per_packet_input_tokens * packets
+        total_output_tokens = per_packet_output_tokens * packets
+        total_tokens = total_input_tokens + total_output_tokens
+
+        recommended_ctx = int(per_packet_total * 1.2)
+
+        self.llm_tokens_hint_label.setText(
+            f"Оценка LLM (приближенно к LM Studio): на 1 пакет вход ~{per_packet_input_tokens}, "
+            f"выход ~{per_packet_output_tokens}, всего ~{per_packet_total}; пакетов: {packets}. "
+            f"Суммарно за этап: вход ~{total_input_tokens}, выход ~{total_output_tokens}, всего ~{total_tokens}. "
+            f"Рекомендуемый context в LM Studio: от {recommended_ctx} (на один запрос)."
+        )
+
+    @staticmethod
+    def _collect_asr_text(asr_json: Dict) -> str:
+        segments = AutoShortsInterface._extract_asr_segments(asr_json)
+        if not segments:
+            return ""
+        return "\n".join(str(s.get("text", "")).strip() for s in segments if str(s.get("text", "")).strip())
+
+    @staticmethod
+    def _extract_asr_segments(asr_json: Dict) -> List[Dict[str, int | str]]:
+        if not isinstance(asr_json, dict):
+            return []
+
+        # Формат проекта: {"1": {...}, "2": {...}} c полями original_subtitle/start_time/end_time
+        numeric_keys = [k for k in asr_json.keys() if str(k).isdigit()]
+        segments: List[Dict[str, int | str]] = []
+        if numeric_keys:
+            for k in sorted(numeric_keys, key=lambda x: int(x)):
+                item = asr_json.get(k)
+                if not isinstance(item, dict):
+                    continue
+                text = str(item.get("original_subtitle") or "").strip()
+                if not text:
+                    continue
+                try:
+                    start_ms = int(item.get("start_time", 0))
+                    end_ms = int(item.get("end_time", start_ms))
+                except Exception:
+                    continue
+                segments.append({"text": text, "start_ms": start_ms, "end_ms": end_ms})
+            return segments
+
+        # Fallback на альтернативные структуры
+        raw_segments = asr_json.get("segments")
+        if isinstance(raw_segments, list):
+            for seg in raw_segments:
+                if not isinstance(seg, dict):
+                    continue
+                text = str(seg.get("text") or seg.get("original_subtitle") or "").strip()
+                if not text:
+                    continue
+                try:
+                    start_ms = int(seg.get("start_ms", seg.get("start_time", 0)))
+                    end_ms = int(seg.get("end_ms", seg.get("end_time", start_ms)))
+                except Exception:
+                    continue
+                segments.append({"text": text, "start_ms": start_ms, "end_ms": end_ms})
+        return segments
+
+    @staticmethod
+    def _estimate_packet_count(total_segments: int, packet_size: int, overlap: int) -> int:
+        total = max(0, int(total_segments or 0))
+        if total <= 0:
+            return 1
+        step = max(1, int(packet_size) - int(overlap))
+        count = 1
+        start = 0
+        while start + packet_size < total:
+            start += step
+            count += 1
+        return max(1, count)
+
+    def _resolve_startup_template_path(self) -> Path:
+        legacy_default = APPDATA_PATH / "shorts_layout_template.json"
+        try:
+            if self.template_state_path.exists():
+                raw = json.loads(self.template_state_path.read_text(encoding="utf-8"))
+                if isinstance(raw, dict):
+                    p = str(raw.get("last_template", "") or "").strip()
+                    if p:
+                        candidate = Path(p)
+                        if candidate.exists():
+                            return candidate
+        except Exception:
+            pass
+        if legacy_default.exists():
+            return legacy_default
+        return self.templates_dir / "default.json"
+
+    def _persist_last_template_path(self, path: Path):
+        try:
+            self.template_state_path.parent.mkdir(parents=True, exist_ok=True)
+            self.template_state_path.write_text(
+                json.dumps({"last_template": str(path)}, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
         except Exception:
             pass
 
@@ -1482,21 +1987,6 @@ class AutoShortsInterface(QWidget):
         spin.valueChanged.connect(slider.setValue)
         slider.valueChanged.connect(spin.setValue)
         spin.valueChanged.connect(lambda _v: self._schedule_fx_preview_refresh())
-        spin.valueChanged.connect(lambda _v: self._schedule_template_autosave())
-
-    def _schedule_template_autosave(self):
-        if hasattr(self, "_template_autosave_timer"):
-            self._template_autosave_timer.start()
-
-    def _autosave_layout_template_silent(self):
-        try:
-            self.template_path.parent.mkdir(parents=True, exist_ok=True)
-            self.template_path.write_text(
-                json.dumps(self._build_layout_template(), ensure_ascii=False, indent=2),
-                encoding="utf-8",
-            )
-        except Exception:
-            pass
 
     @staticmethod
     def _clamp_u8(v: float) -> int:
@@ -1615,6 +2105,12 @@ class AutoShortsInterface(QWidget):
 
         main_win = self.window()
         batch = getattr(main_win, "batchProcessInterface", None)
+        if batch is None and hasattr(main_win, "_ensure_batch_interface"):
+            try:
+                main_win._ensure_batch_interface()
+                batch = getattr(main_win, "batchProcessInterface", None)
+            except Exception:
+                batch = None
         if not batch:
             InfoBar.error(
                 "Ошибка",
@@ -1681,7 +2177,10 @@ class AutoShortsInterface(QWidget):
                     self.source_preview.set_background(pix)
                     # Если шаблон сохранён — применяем его, иначе дефолт
                     if self.template_path.exists():
-                        self._load_layout_template()
+                        # Важно: при выборе нового ролика не перетираем только что
+                        # рассчитанный диапазон анализа (0..длина ролика) значениями
+                        # из шаблона. Иначе ползунок диапазона не растягивается на весь ролик.
+                        self._load_layout_template(persist_last=False, apply_ui_settings=False)
                     else:
                         self._reset_layout_template()
                     self._refresh_output_composite_preview()
@@ -1769,7 +2268,7 @@ class AutoShortsInterface(QWidget):
     def _stop_render(self):
         if hasattr(self, "render_thread") and self.render_thread and self.render_thread.isRunning():
             self.render_thread.request_cancel()
-            self.progress_label.setText("Остановка рендера...")
+            self.stage4_progress_label.setText("Остановка рендера...")
             self.stop_render_btn.setEnabled(False)
 
     def _get_render_backend(self) -> str:
@@ -1831,10 +2330,10 @@ class AutoShortsInterface(QWidget):
         return f"{h:02}:{m:02}:{s:02}"
 
     def closeEvent(self, event):
-        # Тихо сохраняем последний шаблон при закрытии, чтобы он сохранялся между перезапусками
-        self._autosave_layout_template_silent()
-        if hasattr(self, "analyze_thread") and self.analyze_thread.isRunning():
-            self.analyze_thread.terminate()
+        if hasattr(self, "transcribe_thread") and self.transcribe_thread.isRunning():
+            self.transcribe_thread.terminate()
+        if hasattr(self, "candidate_thread") and self.candidate_thread.isRunning():
+            self.candidate_thread.terminate()
         if hasattr(self, "render_thread") and self.render_thread.isRunning():
             self.render_thread.terminate()
         super().closeEvent(event)

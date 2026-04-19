@@ -59,6 +59,8 @@ class ShortsProcessor:
         llm_api_key: str = "",
         llm_model: str = "",
         repeat_similarity_threshold: float = 0.72,
+        min_candidates: int = 8,
+        max_candidates: int = 40,
     ):
         self.min_duration_ms = int(min_duration_s * 1000)
         self.max_duration_ms = int(max_duration_s * 1000)
@@ -66,6 +68,8 @@ class ShortsProcessor:
         self.llm_api_key = (llm_api_key or "").strip()
         self.llm_model = (llm_model or "").strip()
         self.repeat_similarity_threshold = max(0.40, min(0.98, float(repeat_similarity_threshold or 0.72)))
+        self.min_candidates = max(1, int(min_candidates or 1))
+        self.max_candidates = max(self.min_candidates, int(max_candidates or self.min_candidates))
 
     def find_candidates(self, asr_data: ASRData, progress_cb: Optional[Callable] = None) -> List[ShortCandidate]:
         if progress_cb:
@@ -89,7 +93,7 @@ class ShortsProcessor:
 
         # Если после всех фильтров кандидатов всё ещё мало,
         # делаем расширенный проход с более мягкими порогами.
-        if len(candidates) < 12:
+        if len(candidates) < self.min_candidates:
             expanded = self._build_heuristic_candidates(asr_data, relaxed=True)
             candidates = self._deduplicate((candidates + expanded) if candidates else expanded)
             candidates.sort(key=lambda x: x.score, reverse=True)
@@ -99,6 +103,23 @@ class ShortsProcessor:
 
         reranked = self._try_llm_rerank(candidates)
         reranked = self._diversify_by_timeline(reranked)
+
+        if len(reranked) < self.min_candidates:
+            # Добираем до минимального числа из общего пула, сохраняя порядок по score
+            reserve_pool = sorted(candidates, key=lambda x: x.score, reverse=True)
+            seen = {(c.start_ms, c.end_ms) for c in reranked}
+            for c in reserve_pool:
+                key = (c.start_ms, c.end_ms)
+                if key in seen:
+                    continue
+                reranked.append(c)
+                seen.add(key)
+                if len(reranked) >= self.min_candidates:
+                    break
+
+        if len(reranked) > self.max_candidates:
+            reranked = reranked[: self.max_candidates]
+
         if progress_cb:
             progress_cb(85, f"Кандидаты после ранжирования: {len(reranked)}")
         final_candidates = list(reranked)
@@ -129,7 +150,7 @@ class ShortsProcessor:
             key = (c.start_ms, c.end_ms)
             if key in used:
                 continue
-            too_close = any(abs(c.start_ms - s.start_ms) < 7000 for s in seeded[:80])
+            too_close = any(abs(c.start_ms - s.start_ms) < 10000 for s in seeded[:120])
             if too_close and c.score < 78:
                 continue
             extra.append(c)
@@ -532,15 +553,23 @@ class ShortsProcessor:
         sim_near = min(0.98, sim_strong + 0.14)
         for c in candidates:
             overlap = False
-            c_tokens = self._token_set(c.excerpt or c.title)
+            c_text = f"{c.title} {c.excerpt}".strip()
+            c_tokens = self._token_set(c_text)
+            c_ngrams = self._char_ngram_set(c_text)
+            c_bucket = int(c.start_ms // 20000)
+            c_mid = int((c.start_ms + c.end_ms) / 2)
             for a in accepted:
                 inter = max(0, min(c.end_ms, a.end_ms) - max(c.start_ms, a.start_ms))
                 short = max(1, min(c.duration_ms, a.duration_ms))
                 long = max(1, max(c.duration_ms, a.duration_ms))
                 iou = inter / max(1, (c.duration_ms + a.duration_ms - inter))
                 temporal_close = abs(c.start_ms - a.start_ms) < 3500 or abs(c.end_ms - a.end_ms) < 3500
-                a_tokens = self._token_set(a.excerpt or a.title)
-                text_sim = self._jaccard(c_tokens, a_tokens)
+                a_text = f"{a.title} {a.excerpt}".strip()
+                a_tokens = self._token_set(a_text)
+                a_ngrams = self._char_ngram_set(a_text)
+                text_sim = max(self._jaccard(c_tokens, a_tokens), self._jaccard(c_ngrams, a_ngrams))
+                mid_close = abs(c_mid - int((a.start_ms + a.end_ms) / 2)) < 18000
+                same_bucket = c_bucket == int(a.start_ms // 20000)
 
                 if inter / short > 0.72:
                     overlap = True
@@ -549,6 +578,14 @@ class ShortsProcessor:
                     overlap = True
                     break
                 if temporal_close and text_sim > sim_near and inter / long > 0.22:
+                    overlap = True
+                    break
+                # Для борьбы с повторяющимися моментами: близкие по времени и смыслу
+                # фрагменты считаем дублями даже при небольшом перекрытии.
+                if mid_close and text_sim > max(0.52, sim_strong - 0.10) and inter / long > 0.12:
+                    overlap = True
+                    break
+                if same_bucket and text_sim > max(0.58, sim_strong - 0.08):
                     overlap = True
                     break
             if not overlap:
@@ -585,6 +622,15 @@ class ShortsProcessor:
             return set()
         tokens = re.findall(r"[\w\u4e00-\u9fff]{2,}", text.lower(), flags=re.UNICODE)
         return set(tokens)
+
+    @staticmethod
+    def _char_ngram_set(text: str, n: int = 3) -> set:
+        if not text:
+            return set()
+        t = re.sub(r"\s+", " ", text.lower()).strip()
+        if len(t) < n:
+            return {t} if t else set()
+        return {t[i : i + n] for i in range(0, len(t) - n + 1)}
 
     @staticmethod
     def _jaccard(a: set, b: set) -> float:
@@ -1161,6 +1207,13 @@ def render_shorts(
             if not raw:
                 return [(clip_start_ms, clip_end_ms)]
             norm: List[Tuple[int, int]] = []
+            # Делаем склейку чуть более «чувствительной» к паузам,
+            # чтобы чаще сохранять реальные вырезы неречевых кусков.
+            effective_merge_gap_ms = max(80, int(speech_merge_gap_ms * 0.65))
+            # Для внутреннего монтажа не раздуваем сильно края,
+            # иначе соседние реплики быстро слипаются в один диапазон.
+            effective_pre_pad_ms = min(speech_pre_pad_ms, 140)
+            effective_post_pad_ms = min(speech_post_pad_ms, 200)
             # Небольшой контекст до/после речи, чтобы не рубить слова на стыках.
             # Это заметно смягчает "телепорт" между репликами.
             for it in raw:
@@ -1168,8 +1221,8 @@ def render_shorts(
                     s, e = int(it[0]), int(it[1])
                 except Exception:
                     continue
-                s = max(clip_start_ms, s - speech_pre_pad_ms)
-                e = min(clip_end_ms, e + speech_post_pad_ms)
+                s = max(clip_start_ms, s - effective_pre_pad_ms)
+                e = min(clip_end_ms, e + effective_post_pad_ms)
                 if e - s >= 180:
                     norm.append((s, e))
             if not norm:
@@ -1180,7 +1233,7 @@ def render_shorts(
                 ps, pe = merged[-1]
                 # Чуть более мягкий merge после добавления контекста,
                 # чтобы не плодить дробные микро-склейки.
-                if s - pe <= speech_merge_gap_ms:
+                if s - pe <= effective_merge_gap_ms:
                     merged[-1] = (ps, max(pe, e))
                 else:
                     merged.append((s, e))
@@ -1206,9 +1259,15 @@ def render_shorts(
             # если после агрессивной чистки остаётся слишком мало покрытия
             # или разрывы между фразами в среднем маленькие,
             # лучше отдать цельный клип без внутренних склеек.
-            if kept_ms / raw_total_ms < speech_min_coverage_ratio:
+            kept_ratio = kept_ms / raw_total_ms
+            # Раньше тут часто происходил ранний fallback к цельному клипу,
+            # из-за чего монтаж почти не делал внутренних вырезов.
+            # Теперь разрешаем 2+ диапазона при умеренном покрытии речи.
+            if kept_ratio < speech_min_coverage_ratio and not (
+                len(merged) >= 2 and kept_ratio >= max(0.45, speech_min_coverage_ratio - 0.22)
+            ):
                 return [(clip_start_ms, clip_end_ms)]
-            if len(merged) >= 4 and avg_gap_ms < 320:
+            if len(merged) >= 5 and avg_gap_ms < 190:
                 return [(clip_start_ms, clip_end_ms)]
 
             # Если есть 2+ диапазона, это уже реальный сигнал для склейки
